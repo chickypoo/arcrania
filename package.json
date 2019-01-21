@@ -1,0 +1,16 @@
+{
+  "name": "arcrania",
+  "version": "0.1.0",
+  "description": "Working progress.",
+  "main": "index.html",
+  "scripts": {
+    "test": "-"
+  },
+  "author": "Jonathan Huang",
+  "license": "ISC",
+  "dependencies": {
+    "create-react-app": "^2.1.3",
+    "mysql": "^2.16.0",
+    "react": "^16.7.0"
+  }
+}
