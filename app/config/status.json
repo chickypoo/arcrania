@@ -1,0 +1,52 @@
+{
+	"basic" : {
+		"max_health" : 50.0,
+		"max_mana" : 10.0,
+		"armor" : 0.0,
+		"min_attack" : 1.0,
+		"max_attack" : 3.0,
+		"critical" : 0.0,
+		"penetration" : 0.0,
+		"magic" : 0.0,
+		"critical_percent" : 10.0
+	},
+	"power" : {
+		"min_attack" : 0.5,
+		"max_attack" : 1.5,
+		"critical" : 0.0,
+		"penetration" : 0.0,
+		"max_health" : 3.0
+	},
+	"might" : {
+		"min_attack" : 0.0,
+		"max_attack" : 1.0,
+		"critical" : 1.5,
+		"penetration" : 0.0,
+		"max_health" : 2.0
+	},
+	"focus" : {
+		"min_attack" : 0.0,
+		"max_attack" : 0.0,
+		"critical" : 1.5,
+		"penetration" : 1.5,
+		"max_health" : 0.0
+	},
+	"stamina" : {
+		"max_health" : 5.0,
+		"armor" : 1.0
+	},
+	"arcane" : {
+		"magic" : 1.0,
+		"max_mana" : 0.2
+	},
+	"balance" : {
+		"min_attack" : 0.2,
+		"max_attack" : 0.3,
+		"critical" : 0.2,
+		"max_health" : 1.5,
+		"max_mana" : 0.1,
+		"magic" : 0.3
+	},
+	"base" : 3.0,
+	"inc" : 1.5
+}
