@@ -39,4 +39,13 @@ bot.on("message", async message => {
 	}
 });
 
+bot.on("error", e => {
+	let d = new Date();
+	fs.writeFile(`/error_logs/${d.getMonth()+1}-${d.getDate()}-${d.getHours()}:${d.getMinutes()}`, e, err => {
+		if(err)
+			return console.log(err);
+		console.log("Error Log Saved");
+	});
+});
+
 bot.login(bot_setting.token);
