@@ -1,4 +1,5 @@
 let sql = require("./method/connect.js");
+let fx = require("./method/modules.js");
 let _stat = require("../config/status.json");
 let bot_setting = require("../config/bot.json");
 
@@ -24,7 +25,7 @@ module.exports.run = async (bot, msg, arg) => {
 	}).then(rows => {
 		if(skip) return;
 		//New player, create a blank stat page
-		if(!rows) {
+		if(!rows[0]) {
 			player = new Player();
 			return db.query(`INSERT INTO player_stat (player_id) VALUES ('${user_id}')`);
 		}
@@ -174,19 +175,19 @@ class Player {
 const format_stat_output = data => {
 	let str = ``;
 	str += `Experience: ${data.exp}\n`;
-	str += `Power:   ${format_shift_left(data.power, 8)}\n`;
-	str += `Might:   ${format_shift_left(data.might, 8)}\n`;
-	str += `Focus:   ${format_shift_left(data.focus, 8)}\n`;
-	str += `Stamina: ${format_shift_left(data.stamina, 8)}\n`;
-	str += `Arcane:  ${format_shift_left(data.arcane, 8)}\n`;
-	str += `Balance: ${format_shift_left(data.balance, 8)}\n\n`;
-	str += `Health: ${format_shift_left(Math.floor(_stat.basic.max_health +
+	str += `Power:   ${fx.format_shift_left(data.power, 8)}\n`;
+	str += `Might:   ${fx.format_shift_left(data.might, 8)}\n`;
+	str += `Focus:   ${fx.format_shift_left(data.focus, 8)}\n`;
+	str += `Stamina: ${fx.format_shift_left(data.stamina, 8)}\n`;
+	str += `Arcane:  ${fx.format_shift_left(data.arcane, 8)}\n`;
+	str += `Balance: ${fx.format_shift_left(data.balance, 8)}\n\n`;
+	str += `Health: ${fx.format_shift_left(Math.floor(_stat.basic.max_health +
 	  _stat.power.max_health * data.power +
 	  _stat.might.max_health * data.might + 
 	  _stat.stamina.max_health * data.stamina + 
 	  _stat.balance.max_health * data.balance),
 	  9)}\n`;
-	str += `Mana: ${format_shift_left(Math.floor(_stat.basic.max_mana +
+	str += `Mana: ${fx.format_shift_left(Math.floor(_stat.basic.max_mana +
 		_stat.arcane.max_mana * data.arcane +
 		_stat.balance.max_mana * data.balance),
 		9)}\n`;
@@ -204,10 +205,6 @@ const format_stat_output = data => {
 	str += `Magic: ${_stat.basic.magic + Math.floor(_stat.arcane.magic * data.arcane +
 		_stat.balance.magic * data.balance)}`;
 	return str;
-}
-
-const format_shift_left = (value, length) => {
-	return value.toString().padStart(Math.min(value.toString().length, length), ' ');
 }
 
 module.exports.help = {
