@@ -1,0 +1,16 @@
+{
+	"fishing" : 1,
+	"mining_threshold" : 1,
+	"mining_rock_health" : 20,
+	"mining_rock_amount" : 10,
+	"mining_rock_ready" : 300,
+	"mining_rock_drop" : ["20-500-1", "20-300-2", "21-200-5"],
+	"woodcutting_threshold" : 1,
+	"woodcutting_tree_health": 50,
+	"woodcutting_tree_amount": 20,
+	"woodcutting_tree_ready" : 900,
+	"woodcutting_tree_drop" : ["30-1000-5"],
+	"beast" : [0, 1, 2, 4, 5],
+	"shop" : [],
+	"path" : ["Dundrevale-600", "Eli Cove-300", "Afiwood-300"]
+}

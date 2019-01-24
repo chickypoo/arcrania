@@ -1,0 +1,18 @@
+{
+	"item_id":	 	
+		[0, 1, 2, 3, 4, 5, 6],
+	"item_name":	
+		["Tiny Raw Fish", "Small Raw Fish", "Raw Fish", "Big Raw Fish", "Large Raw Fish", "Giant Raw Fish", "Enormous Raw Fish"],
+	"value":			
+		[2, 5, 15, 50, 150, 500, 1500],
+	"cost":				
+		[1, 2, 3, 5, 8, 12, 17],
+	"desc":				
+		["Found when fishing in small ponds. This can be cooked or be used as alchemy reagent.",
+		 "Found when fishing in small ponds. This can be cooked or be used as alchemy reagent.",
+		 "Found when fishing in lakes. This can be cooked or be used as alchemy reagent.",
+		 "Found when fishing in lakes. This can be cooked or be used as alchemy reagent.",
+		 "Found when fishing in ocean. This can be cooked or be used as alchemy reagent.",
+		 "Found when fishing in ocean. This can be cooked or be used as alchemy reagent.",
+		 "Found when fishing in ocean. This can be cooked or be used as alchemy reagent."]
+}

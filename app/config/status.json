@@ -8,7 +8,8 @@
 		"critical" : 0.0,
 		"penetration" : 0.0,
 		"magic" : 0.0,
-		"critical_percent" : 10.0
+		"critical_percent" : 10.0,
+		"bag_limit": 20
 	},
 	"power" : {
 		"min_attack" : 0.5,
