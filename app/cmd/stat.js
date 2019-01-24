@@ -1,5 +1,8 @@
 let sql = require("./method/connect.js");
 let _stat = require("../config/status.json");
+let bot_setting = require("../config/bot.json");
+
+const talked = new Set();
 
 module.exports.run = async (bot, msg, arg) => {
 	let user_id = String(msg.author.id);
@@ -41,39 +44,48 @@ module.exports.run = async (bot, msg, arg) => {
 			let add = (arg.length > 1 ? arg[1] : 1), needed_exp = player.exp_needed(arg[0], _stat.base, _stat.inc, _stat.multi, add);
 			//Calculates how much experience is required.
 			if(player.exp >= needed_exp) {
-				//Player has enough experience to upgrade. Do an emoji poll to confirm.
-				const filter = (reaction, user) => {
-					return ['✅', '❎'].includes(reaction.emoji.name) && user.id === user_id;
-				};
-				msg.channel.send(`\`\`\`css\nIt will cost [${needed_exp} Experience Points] to raise [${arg[0].toLowerCase()}] by ${add}.\nReact with a ✅ to [confirm] or ❎ to [decline].\nYou have up to 10 seconds to decides.\`\`\``)
-					.then(poll => {
-						poll.react('✅')
-							.then(() => poll.react('❎'))
-							.catch(() => console.error('Failed to attach emoji to allocation message'));
+				//Checks if user talked recently
+				if(talked.has(user_id)) {
+					msg.reply(`You entered this command too fast. There is a 10 seconds cooldown for this command: \`${bot_setting.prefix}${this.help.name} [attribute]\``);
+				} else {
+					talked.add(user_id);
+					setTimeout(() => {
+						talked.delete(user_id);
+					}, 10000);
+					//Player has enough experience to upgrade. Do an emoji poll to confirm.
+					const filter = (reaction, user) => {
+						return ['✅', '❎'].includes(reaction.emoji.name) && user.id === user_id;
+					};
+					msg.channel.send(`\`\`\`css\nIt will cost [${needed_exp} Experience Points] to raise [${arg[0].toLowerCase()}] by ${add}.\nReact with a ✅ to [confirm] or ❎ to [decline].\nYou have up to 10 seconds to decides.\`\`\``)
+						.then(poll => {
+							poll.react('✅')
+								.then(() => poll.react('❎'))
+								.catch(() => console.error('Failed to attach emoji to allocation message'));
 
-							poll.awaitReactions(filter, {max: 1, time: 10000, error: ['time']})
-								.then(c => {
-									if(c.first().emoji.name === '✅') {
-										//Player confirms with the selection
-										msg.reply(`\`\`\`css\nYour [${arg[0].toLowerCase()}] has increased by ${add}!\n${player.getStat(arg[0].toLowerCase())} -> ${player.getStat(arg[0].toLowerCase()) + add}\`\`\``);
-										statSQL = `UPDATE player_stat SET exp = exp - ${needed_exp}, ${arg[0].toLowerCase()} = ${player.getStat(arg[0].toLowerCase()) + add} WHERE player_id = '${user_id}'`;
-										sql.database_connect().then(con => {
-											con.query(statSQL);
-											con.end();
-										})
-										.catch(err => {
-											console.log(err);
-										});
-									} else {
-										//Player declines with the selection
-									}
-								})
-								.catch(() => {
-									msg.reply(`\`\`\`You did not vote. No changes made.\`\`\``);
-									skip = true;
-								});
-					})
-					.catch(() => console.error('Allocation message error'));
+								poll.awaitReactions(filter, {max: 1, time: 10000, error: ['time']})
+									.then(c => {
+										if(c.first().emoji.name === '✅') {
+											//Player confirms with the selection
+											msg.reply(`\`\`\`css\nYour [${arg[0].toLowerCase()}] has increased by ${add}!\n${player.getStat(arg[0].toLowerCase())} -> ${player.getStat(arg[0].toLowerCase()) + add}\`\`\``);
+											statSQL = `UPDATE player_stat SET exp = exp - ${needed_exp}, ${arg[0].toLowerCase()} = ${player.getStat(arg[0].toLowerCase()) + add} WHERE player_id = '${user_id}'`;
+											sql.database_connect().then(con => {
+												con.query(statSQL);
+												con.end();
+											})
+											.catch(err => {
+												console.log(err);
+											});
+										} else {
+											//Player declines with the selection
+										}
+									})
+									.catch(() => {
+										msg.reply(`\`\`\`You did not vote. No changes made.\`\`\``);
+										skip = true;
+									});
+						})
+						.catch(() => console.error('Allocation message error'));
+				}
 			} else {
 				//Player does not have enough experience to upgrade that amount.
 				msg.reply(`\`\`\`css\nYou do not have enough [Experience Points]. (Needed ${needed_exp - player.exp} more Experience Points)\`\`\``);
