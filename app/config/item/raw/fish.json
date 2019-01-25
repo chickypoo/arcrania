@@ -14,5 +14,7 @@
 		 "Found when fishing in lakes. This can be cooked or be used as alchemy reagent.",
 		 "Found when fishing in ocean. This can be cooked or be used as alchemy reagent.",
 		 "Found when fishing in ocean. This can be cooked or be used as alchemy reagent.",
-		 "Found when fishing in ocean. This can be cooked or be used as alchemy reagent."]
+		 "Found when fishing in ocean. This can be cooked or be used as alchemy reagent."],
+	"exp":
+		[1, 1, 2, 2, 3, 4, 5]
 }

@@ -1,5 +1,6 @@
 {
 	"fishing" : 1,
+	"fishing_bonus": 1.00,
 	"mining_threshold" : 1,
 	"mining_rock_health" : 20,
 	"mining_rock_amount" : 10,

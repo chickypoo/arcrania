@@ -1,4 +1,5 @@
 const bot_setting = require("./config/bot.json");
+let regular = require("./cmd/method/gather.js");
 
 const Discord = require("discord.js");
 const bot = new Discord.Client();
@@ -22,6 +23,8 @@ fs.readdir("./cmd/", (err, files) => {
 
 bot.on("ready", () => {
 	bot.generateInvite(["ADMINISTRATOR"]).then(link => console.log(link)).catch(err => console.log(err.stack));
+
+	setInterval(regular.process_gathering, 1000);
 });
 
 bot.on("message", async message => {

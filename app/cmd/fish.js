@@ -1,5 +1,6 @@
 let sql = require("./method/connect.js");
 let time = require("../config/action.json");
+const talked = new Set();
 
 module.exports.run = (bot, msg, arg) => {
 	let user_id = String(msg.author.id);
@@ -16,7 +17,7 @@ module.exports.run = (bot, msg, arg) => {
 			skip = true;
 			return;
 		}
-		if(rows[0].player_act !== 'free') {
+		if(!(rows[0].player_act == 'free' || rows[0].player_act == 'fishing')) {
 			//Player are not able to fish
 			msg.reply('You do not have the time to fish now. Please try again when you are free');
 			db.end();
@@ -37,7 +38,7 @@ module.exports.run = (bot, msg, arg) => {
 			return db.query(`SELECT * FROM player_life_skill WHERE player_id = '${user_id}'`);
 		} else {
 			//Player is still on fishing cooldown; player is fishing still.
-			msg.reply(`You still have ${results[0].expiry} left until you finish fishing.`);
+			msg.reply(`You still have ${timestamp_format(results[0].expires)} left until you finish fishing.`);
 			skip = true;
 			db.end();
 			return;
@@ -58,6 +59,16 @@ module.exports.run = (bot, msg, arg) => {
 
 		//Checks if player's fishing level is sufficient in the current zone.
 		if(skill_level >= field.fishing) {
+			if(talked.has(user_id)) {
+				msg.reply(`You entered this command too fast. There is a 2 seconds cooldown for this command: \`${bot_setting.prefix}${this.help.name}\``);
+				skip = true;
+				return db.end();
+			} else {
+				talked.add(user_id);
+				setTimeout(() => {
+					talked.delete(user_id);
+					}, 2000);
+			}
 			if(field.fishing == 0) {
 				msg.reply(`There is no fishing spot in this area.`);
 				skip = true;
@@ -84,6 +95,12 @@ module.exports.run = (bot, msg, arg) => {
 		if(db && db.end) db.end();
 		console.log(err);
 	});
+}
+
+const timestamp_format = data => {
+	let times = data.split(':');
+	let hour = parseInt(times[0]), minute = parseInt(times[1]), second = parseInt(times[2]);
+	return `${(hour ? `${hour} hours ` : ``)}${(minute ? `${minute} minutes ` : ``)}${(second ? `${second} seconds` : ``)}`;
 }
 
 const file_to_second = data => {
