@@ -1,5 +1,6 @@
 const bot_setting = require("./config/bot.json");
-let regular = require("./cmd/method/gather.js");
+const gatherer = require("./cmd/method/gather.js").process_gathering;
+const merger = require("./cmd/method/merge.js").merge_inventory;
 
 const Discord = require("discord.js");
 const bot = new Discord.Client();
@@ -18,13 +19,17 @@ fs.readdir("./cmd/", (err, files) => {
 	jsfiles.forEach((f, i) => {
 		let props = require(`./cmd/${f}`);
 		bot.commands.set(props.help.name, props);
+		console.log(`Loaded ${props.help.name}.js!`);
 	});
 });
 
 bot.on("ready", () => {
 	bot.generateInvite(["ADMINISTRATOR"]).then(link => console.log(link)).catch(err => console.log(err.stack));
 
-	setInterval(regular.process_gathering, 1000);
+	//Process all fishing / mining / woodcutting for those that has passed the time.
+	setInterval(gatherer, 1000);
+	//Merge inventory of same player
+	setInterval(merger, 10000);
 });
 
 bot.on("message", async message => {
@@ -44,7 +49,7 @@ bot.on("message", async message => {
 
 bot.on("error", e => {
 	let d = new Date();
-	fs.writeFile(`/error_logs/${d.getMonth()+1}-${d.getDate()}-${d.getHours()}:${d.getMinutes()}`, e, err => {
+	fs.writeFile(`./error_logs/${d.getMonth()+1}-${d.getDate()}-${d.getHours()}:${d.getMinutes()}`, e, err => {
 		if(err)
 			return console.log(err);
 		console.log("Error Log Saved");
