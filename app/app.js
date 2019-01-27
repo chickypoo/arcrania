@@ -25,6 +25,7 @@ fs.readdir("./cmd/", (err, files) => {
 
 bot.on("ready", () => {
 	bot.generateInvite(["ADMINISTRATOR"]).then(link => console.log(link)).catch(err => console.log(err.stack));
+	bot.user.setPresence({ game: { name: `${bot_setting.prefix}join to register!`, type: 0 } });
 
 	//Process all fishing / mining / woodcutting for those that has passed the time.
 	setInterval(gatherer, 1000);

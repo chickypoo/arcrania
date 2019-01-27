@@ -39,12 +39,15 @@ module.exports = {
 		}).then(res => {
 			if(skip)
 				return;
-			let iid_con = [];
+			let iid_con = [], qty = 0;
 			for(let key in res) {
+				qty++;
 				iid_con.push(res[key].inventory_id);
 			}
 			//Delete all excess inventory id in the player_inventory
-			return db.query(`DELETE FROM player_inventory WHERE inventory_id IN (${iid_con.join(',')})`);
+			console.log(`Cleaned up ${qty} items inside the inventory`);
+			return db.query(`DELETE FROM player_inventory WHERE inventory_id IN (${iid_con.join(',')})`);	
+		}).then(() => {
 			//Finished cleaning up inventory. Closing up connection
 			return db.end();
 		}).catch(err => {

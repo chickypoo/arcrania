@@ -2,13 +2,15 @@ let sql = require("./method/connect.js");
 let fx = require("./method/modules.js");
 let _stat = require("../config/status.json");
 let bot_setting = require("../config/bot.json");
+const Discord = require("discord.js");
+let Player = require('../config/class/player.js');
 
 const talked = new Set();
 
 module.exports.run = async (bot, msg, arg) => {
 	let user_id = String(msg.author.id);
 
-	let db, db2, player, row, reply, skip = false, statSQL;
+	let db, db2, player, row, reply, skip = false, statSQL, lifeskill;
 
 	sql.database_connect().then(con => {
 		db = con;
@@ -26,20 +28,17 @@ module.exports.run = async (bot, msg, arg) => {
 		if(skip) return;
 		//New player, create a blank stat page
 		if(!rows[0]) {
-			player = new Player();
+			player = new Player(_stat.basic);
 			return db.query(`INSERT INTO player_stat (player_id) VALUES ('${user_id}')`);
 		}
 		//Player exists.
 		row = rows[0];
-		player = new Player(row.exp, row.power, row.might, row.focus, row.stamina, row.arcane, row.balance);
+		player = new Player(_stat.basic, row.exp, row.power, row.might, row.focus, row.stamina, row.arcane, row.balance);
 	}).then(() => {
 		if(skip) return;
-			if(arg && arg.length == 0) {
+		if(arg && arg.length == 0) {
 			//Only output player's status page
-			reply = `<@${user_id}>\n\`\`\`css\n${format_stat_output(player)}\`\`\``;
-			msg.channel.send(reply);
-			skip = true;
-			return db.end();
+			return db.query(`SELECT * FROM player_life_skill WHERE player_id = '${user_id}'`);
 		} else if(arg && valid_allocation(arg[0]) && (arg.length == 1 || (!isNaN(arg[1]) && arg[1] > 0))) {
 			//Adds Status if possible and enough experience points
 			let add = (arg.length > 1 ? arg[1] : 1), needed_exp = player.exp_needed(arg[0], _stat.base, _stat.inc, _stat.multi, add);
@@ -92,8 +91,39 @@ module.exports.run = async (bot, msg, arg) => {
 				msg.reply(`\`\`\`css\nYou do not have enough [Experience Points]. (Needed ${needed_exp - player.exp} more Experience Points)\`\`\``);
 			}
 			skip = true;
-			return db.end();
+			return;
 		}
+	}).then(res => {
+		if(skip) return;
+
+		if(!res[0]) {
+			lifeskill = {
+				"fishing_level" : 1,
+				"fishing_exp" : 0,
+				"mining_level" : 1,
+				"mining_exp" : 0,
+				"woodcutting_level" : 1,
+				"woodcutting_exp" : 0,
+				"cooking_level" : 1,
+				"cooking_exp" : 0,
+				"forging_level" : 1,
+				"forging_exp" : 0,
+				"alchemy_level" : 1,
+				"alchemy_exp" : 0,
+				"farming_level" : 1,
+				"farming_exp" : 0,
+				"refining_level" : 1,
+				"refining_exp" : 0
+			};
+			return db.query(`INSERT INTO player_life_skill (player_id) VALUES ('${user_id}')`);
+		}
+		lifeskill = res[0];
+		return;
+	}).then(() => {
+		if(skip) return db.end();
+		player.setLife(lifeskill);
+		msg.reply(build_stat_embed(player, msg.author));
+		return db.end();
 	}).catch(err => {
 		if(db && db.end) db.end();
 		console.log(err);
@@ -105,106 +135,47 @@ const valid_allocation = str => {
 	return (str.toString().toLowerCase() in valid);
 }
 
-class Player {
-	constructor(exp = 0, power = 0, might = 0, focus = 0, stamina = 0, arcane = 0, balance = 0) {
-		this.exp = exp;
-		this.power = power;
-		this.might = might;
-		this.focus = focus;
-		this.stamina = stamina;
-		this.arcane = arcane;
-		this.balance = balance;
-	}
-
-	map_player_to_map() {
-		let map = new Map();
-		map.set('power', this.power)
-			.set('might', this.might)
-			.set('focus', this.focus)
-			.set('stamina', this.stamina)
-			.set('arcane', this.arcane)
-			.set('balance', this.balance);
-		return map;
-	}
-
-	total_stat() {
-		return this.power + this.might + this.focus + this.stamina + this.arcane + this.balance;
-	}
-
-	exp_needed(attribute, base, inc, multi, amount) {
-		let original = this.get();
-		let need, total_need = 0;
-		for(let i = 0; i < amount; i++) {
-			need = Math.floor((base + inc * this.getStat(attribute)) * (1 + multi * this.total_stat()));
-			total_need += need;
-			this.add(attribute, 1);
-		}
-		this.set(original);
-		return total_need;
-	}
-
-	get() {
-		return [this.power, this.might, this.focus, this.stamina, this.arcane, this.balance];
-	}
-
-	getStat(arg) {
-		return (this.map_player_to_map()).get(arg);
-	}
-
-	set(a) {
-		this.power = a[0];
-		this.might = a[1];
-		this.focus = a[2];
-		this.stamina = a[3];
-		this.arcane = a[4];
-		this.balance = a[5];
-	}
-
-	add(attribute, amount) {
-		switch(attribute) {
-			case 'power' : this.power = this.power + amount; break;
-			case 'might' : this.might = this.might + amount; break;
-			case 'focus' : this.focus = this.focus + amount; break;
-			case 'stamina': this.stamina = this.stamina + amount; break;
-			case 'arcane': this.arcane = this.arcane + amount; break;
-			case 'balance': this.balance = this.balance + amount; break;
-		}
-	}
+const build_stat_embed = (data, author) => {
+	let _power = data.can_add('power', _stat.base, _stat.inc, _stat.multi, 1);
+	let _might = data.can_add('might', _stat.base, _stat.inc, _stat.multi, 1);
+	let _focus = data.can_add('focus', _stat.base, _stat.inc, _stat.multi, 1);
+	let _stamina = data.can_add('stamina', _stat.base, _stat.inc, _stat.multi, 1);
+	let _arcane = data.can_add('arcane', _stat.base, _stat.inc, _stat.multi, 1);
+	let _balance = data.can_add('balance', _stat.base, _stat.inc, _stat.multi, 1);
+	const embed = new Discord.RichEmbed()
+		.setAuthor(`${author.username}#${author.discriminator}'s Status Page`, author.avatarURL)
+		.setColor('#708090')
+		.addField(`Experience Points`, data.exp)
+		.addField(`Power`, `${data.power}\n${_power[0] ? "[Ready]" : `[Needs ${_power[1]} more EXP]`}`, true)
+		.addField(`Might`, `${data.might}\n${_might[0] ? "[Ready]" : `[Needs ${_might[1]} more EXP]`}`, true)
+		.addField(`Focus`, `${data.focus}\n${_focus[0] ? "[Ready]" : `[Needs ${_focus[1]} more EXP]`}`, true)
+		.addField(`Stamina`, `${data.stamina}\n${_stamina[0] ? "[Ready]" : `[Needs ${_stamina[1]} more EXP]`}`, true)
+		.addField(`Arcane`, `${data.arcane}\n${_arcane[0] ? "[Ready]" : `[Needs ${_arcane[1]} more EXP]`}`, true)
+		.addField(`Balance`, `${data.balance}\n${_balance[0] ? "[Ready]" : `[Needs ${_balance[1]} more EXP]`}`, true)
+		.addBlankField()
+		.addField(`Combat Power (Defensive)`, `HP: ${data.getHP()}\nMP: ${data.getMP()}\nAP: ${data.getAP()}`, true)
+		.addField(`Combat Power (Offensive)`, `ATK: ${data.getMinAtk()} ~ ${data.getMaxAtk()}\n`
+			+`Critical Rate: ${data.getCritRate()}%\n`
+			+`Critical DMG: ${data.getCritDmg()[0]}% | ${data.getCritDmg()[1]}\n`
+			+`Penetration: ${data.getPenetration()}\n`
+			+`Magic: ${data.getMagic()}`, true)
+		.addBlankField()
+		.addField(`Fishing`, `Level ${data.lifeskill.fishing_level}\nEXP: ${data.lifeskill.fishing_exp}/${gather_exp_next(data.lifeskill.fishing_level)}`, true)
+		.addField(`Mining`, `Level ${data.lifeskill.mining_level}\nEXP : ${data.lifeskill.mining_exp}/${gather_exp_next(data.lifeskill.mining_level)}`, true)
+		.addField(`Woodcutting`, `Level ${data.lifeskill.woodcutting_level}\nEXP : ${data.lifeskill.woodcutting_exp}/${gather_exp_next(data.lifeskill.woodcutting_level)}`, true)
+		.addField(`Cooking`, `Level ${data.lifeskill.cooking_level}\nEXP : ${data.lifeskill.cooking_exp}/PLACEHOLDER`, true)
+		.addField(`Forging`, `Level ${data.lifeskill.forging_level}\nEXP : ${data.lifeskill.forging_exp}/PLACEHOLDER`, true)
+		.addField(`Refining`, `Level ${data.lifeskill.refining_level}\nEXP : ${data.lifeskill.refining_exp}/PLACEHOLDER`, true)
+		.addField(`Alchemy`, `Level ${data.lifeskill.alchemy_level}\nEXP : ${data.lifeskill.alchemy_exp}/PLACEHOLDER`, true)
+		.addField(`Farming`, `Level ${data.lifeskill.farming_level}\nEXP : ${data.lifeskill.farming_exp}/PLACEHOLDER`, true);
+	return embed;
 }
 
-const format_stat_output = data => {
-	let str = ``;
-	str += `Experience: ${data.exp}\n`;
-	str += `Power:   ${fx.format_shift_left(data.power, 8)}\n`;
-	str += `Might:   ${fx.format_shift_left(data.might, 8)}\n`;
-	str += `Focus:   ${fx.format_shift_left(data.focus, 8)}\n`;
-	str += `Stamina: ${fx.format_shift_left(data.stamina, 8)}\n`;
-	str += `Arcane:  ${fx.format_shift_left(data.arcane, 8)}\n`;
-	str += `Balance: ${fx.format_shift_left(data.balance, 8)}\n\n`;
-	str += `Health: ${fx.format_shift_left(Math.floor(_stat.basic.max_health +
-	  _stat.power.max_health * data.power +
-	  _stat.might.max_health * data.might + 
-	  _stat.stamina.max_health * data.stamina + 
-	  _stat.balance.max_health * data.balance),
-	  9)}\n`;
-	str += `Mana: ${fx.format_shift_left(Math.floor(_stat.basic.max_mana +
-		_stat.arcane.max_mana * data.arcane +
-		_stat.balance.max_mana * data.balance),
-		9)}\n`;
-	str += `Damage: ${Math.floor(_stat.basic.min_attack +
-		_stat.power.min_attack * data.power +
-		_stat.balance.min_attack * data.balance)} ~ ${Math.floor(_stat.basic.max_attack +
-		_stat.power.max_attack * data.power +
-		_stat.might.max_attack * data.might +
-		_stat.balance.max_attack * data.balance)}\n`;
-	str += `Critical Damage: ${_stat.basic.critical_percent}% | ${Math.floor(_stat.basic.critical +
-		_stat.might.critical * data.might +
-		_stat.focus.critical * data.focus +
-		_stat.balance.critical * data.balance)}\n`;
-	str += `Penetration: ${_stat.basic.penetration + _stat.focus.penetration * data.focus}\n`;
-	str += `Magic: ${_stat.basic.magic + Math.floor(_stat.arcane.magic * data.arcane +
-		_stat.balance.magic * data.balance)}`;
-	return str;
+const gather_exp_next = level => {
+	let base = 10;
+	for(let i = 1; i <= level / 10; i++)
+		base += i;
+	return base;
 }
 
 module.exports.help = {

@@ -84,7 +84,6 @@ module.exports.run = (bot, msg, arg) => {
 		}
 	}).then(() => {
 		if(skip) return;
-
 		//Change player's state into fishing
 		msg.reply(`You have begun fishing in ${player_loc} for ${convert_time_from_to('second', 'minute', file_to_second(time.fishing))} minutes.`);
 		return db.query(`UPDATE player_info SET player_act = 'fishing' WHERE player_id = '${user_id}'`);
