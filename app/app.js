@@ -28,7 +28,7 @@ bot.on("ready", () => {
 	bot.user.setPresence({ game: { name: `${bot_setting.prefix}join to register!`, type: 0 } });
 
 	//Process all fishing / mining / woodcutting for those that has passed the time.
-	setInterval(gatherer, 1000);
+	//setInterval(gatherer, 1000);
 	//Merge inventory of same player
 	setInterval(merger, 10000);
 });

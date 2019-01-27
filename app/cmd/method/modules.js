@@ -5,5 +5,7 @@ module.exports = {
 
 	b32_to_dec : b32 => parseInt(b32, 32),
 
-	within : (low, high, val) => ((val >= low) && (val <= high))
+	within : (low, high, val) => ((val >= low) && (val <= high)),
+
+	random : (low, high) => Math.floor(Math.random() * (high - low + 1) + low)
 };

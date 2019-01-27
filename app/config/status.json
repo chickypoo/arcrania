@@ -85,6 +85,10 @@
 			"magic": 0.2
 		}
 	},
+	"mining" : {
+		"base" : 2.0,
+		"inc" : 0.5
+	},
 	"base" : 3.0,
 	"inc" : 1.5,
 	"multi" : 0.02
