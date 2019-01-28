@@ -45,7 +45,6 @@ module.exports.run = async (bot, msg, arg) => {
 		//Find the item name from library
 		let sub = getDirectories(item_path), i_lib, iName;
 		for(let i = 0; i < sub.length; i++) {
-			console.log(`My sub is now ${sub[i]}`);
 			i_lib = require('require-all')({dirname : sub[i]});
 			for(let key in i_lib) {
 				let arr = i_lib[key].item_id;

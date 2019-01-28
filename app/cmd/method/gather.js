@@ -80,7 +80,7 @@ module.exports = {
 			//Insert item into player's inventory
 			//Checks whos bag is full from query
 			let unfilter = results.length || 0;
-			temp_con = b_con;
+			temp_con = JSON.parse(JSON.stringify(b_con));
 			for(let i = 0; i < results.length; i++) {
 				if(results[i].inbag >= bag_max) {
 					//Remove the player from this container
@@ -97,6 +97,8 @@ module.exports = {
 			for(let i = 0; i < b_con.length; i++) {
 				insert_data.push(`('${b_con[i][0]}', ${b_con[i][1]}, 1, ${b_con[i][3]}, ${b_con[i][2]})`);
 			}
+			if(!insert_data.length)
+				return;
 			return db.query(`INSERT INTO player_inventory (player_id, item_id, amount, cost, arg_1) VALUES ${insert_data.join(', ')}`);
 		}).then(() => {
 			if(skip)
@@ -187,6 +189,8 @@ module.exports = {
 			for(let i = 0; i < insert_loot.length; i++)
 				if(can_give.get(`${insert_loot[i].split(',')[0].slice(1)}`))
 					insert_sql.push(insert_loot[i]);
+			if(!insert_sql.length)
+				return;
 			return db.query(`INSERT INTO player_inventory (player_id, item_id, amount, cost, arg_1) VALUES ${insert_sql.join(',')}`);
 		}).then(() => {
 			if(skip) return;
