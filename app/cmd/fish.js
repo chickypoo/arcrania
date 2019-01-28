@@ -5,7 +5,7 @@ const talked = new Set();
 module.exports.run = (bot, msg, arg) => {
 	let user_id = String(msg.author.id);
 
-	let db, skip = false, field, player_loc, skill_level;
+	let db, skip = false, field, player_loc, skill_level, act;
 
 	sql.database_connect().then(con => {
 		db = con;
@@ -17,16 +17,17 @@ module.exports.run = (bot, msg, arg) => {
 			skip = true;
 			return;
 		}
-		if(!(rows[0].player_act == 'free' || rows[0].player_act == 'fishing')) {
+		act = rows[0].player_act;
+		if(!(act == 'free' || act == 'mining' || act == 'fishing' || act == 'woodcutting')) {
 			//Player are not able to fish
-			msg.reply('You do not have the time to fish now. Please try again when you are free');
+			msg.reply(`You do not have the time to fish now. Please try again when you are free. (You are currently ${act})`);
 			db.end();
 			skip = true;
 			return;
 		}
 		//Player found in the world, checks if player is still fishing
 		player_loc = rows[0].location;
-		return db.query(`SELECT TIMEDIFF(expiry, CURRENT_TIMESTAMP()) as expires FROM timer WHERE player_id = '${user_id}' AND what = 'fishing'`);
+		return db.query(`SELECT TIMEDIFF(expiry, CURRENT_TIMESTAMP()) as expires FROM timer WHERE player_id = '${user_id}' AND what IN ('fishing', 'mining', 'woodcutting')`);
 	}).then(results => {
 		if(skip) return;
 
@@ -38,7 +39,7 @@ module.exports.run = (bot, msg, arg) => {
 			return db.query(`SELECT * FROM player_life_skill WHERE player_id = '${user_id}'`);
 		} else {
 			//Player is still on fishing cooldown; player is fishing still.
-			msg.reply(`You still have ${timestamp_format(results[0].expires)} left until you finish fishing.`);
+			msg.reply(`You still have ${timestamp_format(results[0].expires)} left until you finish ${act}.`);
 			skip = true;
 			db.end();
 			return;

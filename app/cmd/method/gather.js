@@ -5,8 +5,8 @@ let fx = require('./modules.js');
 let mining_stat = require('../../config/status.json').mining;
 
 module.exports = {
-	process_gathering : () => {
-		let db, skip = false, fisher_list = [], item_db_fish, bonus, field, item, if_con= [], b_con = [], temp_con;
+	process_fisher : () => {
+		let db, skip, fisher_list = [], item_db_fish, bonus, field, item, if_con= [], b_con = [], temp_con;
 
 		sql.database_connect().then(con => {
 			db = con;
