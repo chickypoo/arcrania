@@ -1,5 +1,6 @@
 let sql = require("./method/connect.js");
 let fx = require("./method/modules.js");
+let Discord = require('discord.js');
 
 module.exports.run = async (bot, msg, arg) => {
 	let user_id = String(msg.author.id);
@@ -31,7 +32,7 @@ module.exports.run = async (bot, msg, arg) => {
 		if(skip)
 			return;
 		//Display the currency to chat
-		msg.reply(`\`\`\`css\n${format_currency_output(wallet)}\`\`\``);
+		msg.reply(build_currency_embed(wallet));
 		return db.end();
 	}).catch(err => {
 		if(db && db.end) db.end();
@@ -39,13 +40,14 @@ module.exports.run = async (bot, msg, arg) => {
 	});
 }
 
-const format_currency_output = (wallet) => {
-	let str = ``, currency_name = wallet.get_currency_name(), currencies = wallet.getCurrency();
-	for(let i = 0; i < currency_name.length || i < currencies.length; i++) {
-		str += `${currency_name[i]}: ${fx.format_shift_left(currencies[i], 10)}\n`;
-	}
-	return str;
+const build_currency_embed = wallet => {
+	const embed = new Discord.RichEmbed()
+		.setTitle('Currency Window')
+		.addField(`Gold`, `${wallet.get('gold')}`, true)
+		.addField(`Token`, `${wallet.get('token')}`, true)
+		.addField(`Medal`, `${wallet.get('medal')}`, true);
 
+	return embed;
 }
 
 class Wallet {
