@@ -1,5 +1,5 @@
 const bot_setting = require("./config/bot.json");
-const gatherer = require("./cmd/method/gather.js").process_gathering;
+const gatherer = require("./cmd/method/gather.js");
 const merger = require("./cmd/method/merge.js").merge_inventory;
 
 const Discord = require("discord.js");
@@ -30,6 +30,7 @@ bot.on("ready", () => {
 	//Process all fishing / mining / woodcutting for those that has passed the time.
 	//setInterval(gatherer, 1000);
 	//Merge inventory of same player
+	setInterval(gatherer.process_miner, 1000);
 	setInterval(merger, 10000);
 });
 

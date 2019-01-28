@@ -1,0 +1,15 @@
+{
+	"item_id":	 	
+		[20, 21],
+	"item_name":	
+		["Rock", "Ore Chunk"],
+	"value":			
+		[1, 5],
+	"cost":				
+		[1, 3],
+	"desc":				
+		["Found when mining in field. Basic building material for houses and clan.",
+		 "Found when mining in field. Can be worked to extract metal material."],
+	"exp":
+		[1, 2]
+}

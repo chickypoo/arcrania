@@ -32,7 +32,7 @@ module.exports.run = async (bot, msg, arg) => {
 		if(skip) return;
 		if(res[0]) {
 			//Player is still on mining cooldown; player is mining still.
-			msg.reply(`You still have ${timestamp_format(results[0].expires)} left until you finish ${act}.`);
+			msg.reply(`You still have ${timestamp_format(res[0].expires)} left until you finish ${act}.`);
 			skip = true;
 			return;
 		}
@@ -84,11 +84,11 @@ module.exports.run = async (bot, msg, arg) => {
 		return db.query(`INSERT INTO timer VALUES ('${user_id}', TIMESTAMPADD(MINUTE, 5, CURRENT_TIMESTAMP()), 'mining')`);
 	}).then(() => {
 		if(skip) return;
-		//Change player status to idle
+		//Change player status to mining
+		msg.reply(`You have begun mining in ${loc} for 5 minutes`);
 		return db.query(`UPDATE player_info SET player_act = 'mining' WHERE player_id = '${user_id}'`);
 	}).then(() => {
 		//Close database connection
-		msg.reply(`You have begun mining in ${loc} for 5 minutes`);
 		return db.end();
 	}).catch(e => {
 		if(db && db.end) db.end();
@@ -99,6 +99,12 @@ module.exports.run = async (bot, msg, arg) => {
 const mining_damage = (level, skill = null) => {
 	let dmg = Math.floor(mining_stat.base + level * mining_stat.inc)
 	return dmg;
+}
+
+const timestamp_format = data => {
+	let times = data.split(':');
+	let hour = parseInt(times[0]), minute = parseInt(times[1]), second = parseInt(times[2]);
+	return `${(hour ? `${hour} hours ` : ``)}${(minute ? `${minute} minutes ` : ``)}${(second ? `${second} seconds` : ``)}`;
 }
 
 module.exports.help = {

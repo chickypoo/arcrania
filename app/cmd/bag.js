@@ -88,7 +88,7 @@ const build_bag_embed = (player_bag, item_dictionary, author, page) => {
 	const bag_output_data = format_bag_output(player_bag, item_dictionary, page);
 	const embed = new Discord.RichEmbed()
 		.setAuthor(`${author.username}#${author.discriminator}'s Inventory`, author.avatarURL)
-		.setTitle(`Bag space (${player_bag.length}/${bag_limit})`)
+		.setTitle(`Bag space (${bag_output_data[2]}/${bag_limit})`)
 		.setColor('#708090')
 		.addField(`Page ${bag_output_data[1]} of ${Math.floor(player_bag.length/20+1)}\nCode | Item Information`, bag_output_data[0])
 		.setFooter(`Player can increase bag size in passive skill section.\nTo jump to different page number use >>bag #`)
@@ -101,11 +101,13 @@ const format_bag_output = (bag, lib, page) => {
 	//Find if page grabbed is possible
 	//Each output can hold up to 20 lines
 	let min_page = 1, max_page = bag.length / 20 + 1, cur_page = Math.floor(Math.min(Math.max(min_page, page), max_page));
+	let amount = 0;
 	for(let i = (cur_page-1) * 20; i < bag.length && i < cur_page * 20; i++) {
 		//ID (up to 10 digit or 7 b32) Amount (up to 3 digit or 2 b32) x Item Name
+		amount += bag[i].amount;
 		str += `${fx.dec_to_b32(bag[i].inventory_id).toUpperCase().padEnd(' ', 5)} | ${bag[i].amount.toString().padStart(' ', 3)} x ${lib.get(bag[i].item_id)}\n`;
 	}
-	return [str, cur_page];
+	return [str, cur_page, amount];
 }
 
 const get_last_dir = path => {
