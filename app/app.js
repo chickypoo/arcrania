@@ -8,6 +8,8 @@ const fs = require("fs");
 
 bot.commands = new Discord.Collection();
 
+const talk = new Set();
+
 fs.readdir("./cmd/", (err, files) => {
 	if(err) console.error(err);
 	let jsfiles = files.filter(f => f.split(".").pop() === "js");
@@ -36,7 +38,16 @@ bot.on("ready", () => {
 
 bot.on("message", async message => {
 	if(message.author.bot) return;
-
+	if(talk.has(message.author.id)) {
+		message.reply(`You are entering commands too fast. There is a 2 second global cooldown.`);
+		return;
+	} else {
+		talk.add(message.author.id);
+		setTimeout(() => {
+			talk.delete(message.author.id);
+		}, 2000);
+	}
+	
 	let messages = message.content.split(" ");
 	let command = messages[0].toLowerCase();
 	let args = messages.slice(1);

@@ -1,20 +1,13 @@
 {
 	"item_id":	 	
-		[0, 1, 2, 3, 4, 5, 6],
+		[0, 1, 2, 3, 4, 5, 6,7,8,9,10,11,12,13,14,15,16,17,18,19],
 	"item_name":	
-		["Tiny Raw Fish", "Small Raw Fish", "Raw Fish", "Big Raw Fish", "Large Raw Fish", "Giant Raw Fish", "Enormous Raw Fish"],
+		["Tiny Raw Fish", "Small Raw Fish", "Raw Fish", "Big Raw Fish", "Large Raw Fish", "Giant Raw Fish", "Enormous Raw Fish","Rare Raw Fish","Magic Raw Fish","Enchanted Raw Fish","Epic Raw Fish","Tiered Raw Fish",
+		 "Ancient Raw Fish","Unique Raw Fish","Mystic Raw Fish","Universal Raw Fish","Nebulous Raw Fish","Prized Raw Fish","Queen Raw Fish","King Raw Fish"],
 	"value":			
-		[2, 5, 15, 50, 150, 500, 1500],
+		[2, 3, 5, 7, 10, 15, 22,33,49,74,110,163,244,365,547,821,1231,1846,2769,4153],
 	"cost":				
-		[1, 2, 3, 5, 8, 12, 17],
-	"desc":				
-		["Found when fishing in small ponds. This can be cooked or be used as alchemy reagent.",
-		 "Found when fishing in small ponds. This can be cooked or be used as alchemy reagent.",
-		 "Found when fishing in lakes. This can be cooked or be used as alchemy reagent.",
-		 "Found when fishing in lakes. This can be cooked or be used as alchemy reagent.",
-		 "Found when fishing in ocean. This can be cooked or be used as alchemy reagent.",
-		 "Found when fishing in ocean. This can be cooked or be used as alchemy reagent.",
-		 "Found when fishing in ocean. This can be cooked or be used as alchemy reagent."],
+		[1, 2, 3, 4, 5, 6, 7,8,9,10,11,12,13,14,15,16,17,18,19,20],
 	"exp":
-		[1, 1, 2, 2, 3, 4, 5]
+		[1, 1, 1, 2, 2, 2, 3,3,3,4,4,4,5,5,5,6,6,8,9,10]
 }

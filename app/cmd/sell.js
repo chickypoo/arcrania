@@ -94,6 +94,8 @@ module.exports.run = async (bot, msg, arg) => {
 								else
 									return db2.query(`UPDATE player_currency SET gold = gold + ${dnum * res[0].cost} WHERE player_id = '${user_id}'`);
 							}).then(() => {
+								//Remove player from the talking cd (10s)
+								sell_talked.delete(user_id);
 								return db2.end();
 							}).catch(e => {
 								if(db2 && db2.end) db2.end();

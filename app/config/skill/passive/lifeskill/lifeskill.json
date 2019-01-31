@@ -1,0 +1,11 @@
+{
+	"I" : {
+		"id" : [0, 1, 2, 3, 4, 5],
+		"name" : ["Easier Fishing I","Fish Quality I","Tasty Fish I","Fisher Sense I","Rare Fish I","High Grade Fish I"],
+		"stat" : [[[37,1]],[[38,2],[38,100]],[[43,2]],[[44,3]],[[45,1]],[[46,1]]],
+		"req" : [[],[],[],[],[],[]],
+		"max" : [1,100,5,5,5,5],
+		"cost" : [100,2,10,10,50,25],
+		"time" : [60,5,5,5,30,5]
+	}
+}

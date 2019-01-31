@@ -4,6 +4,12 @@ let fx = require('./modules.js');
 
 let mining_stat = require('../../config/status.json').mining;
 
+const { lstatSync, readdirSync} = require('fs');
+const { join} = require('path');
+const isDirectory = source => lstatSync(source).isDirectory();
+const getDirectories = source => readdirSync(source).map(name => join(source, name)).filter(isDirectory);
+const passive_path = '/home/arcrania/config/skill/passive/';
+
 module.exports = {
 	process_fisher : () => {
 		let db, skip, fisher_list = [], item_db_fish, bonus, field, item, if_con= [], b_con = [], temp_con;
@@ -11,7 +17,7 @@ module.exports = {
 		sql.database_connect().then(con => {
 			db = con;
 			//Retrieve list of players who is gathering [fishing/mining/woodcutting]
-			return db.query(`SELECT location as place, what, l.* FROM player_life_skill l JOIN timer t ON l.player_id = t.player_id JOIN player_info i ON i.player_id = t.player_id WHERE expiry <= CURRENT_TIMESTAMP() AND what IN ('fishing', 'woodcutting')`);
+			return db.query(`SELECT location as place, what, l.*, lifeskill FROM player_life_skill l JOIN timer t ON l.player_id = t.player_id JOIN player_info i ON i.player_id = t.player_id JOIN player_passive p ON p.player_id = t.player_id WHERE expiry <= CURRENT_TIMESTAMP() AND what IN ('fishing', 'woodcutting')`);
 		}).then(result => {		
 			if(!result[0]){
 				skip = true;
@@ -25,13 +31,14 @@ module.exports = {
 			//Process fishing list here
 			item_db_fish = require('../../config/item/raw/fish.json');
 			fisher_list.forEach(e => {
+				let m = extractTotalBonus(passiveSplit(e.lifeskill));
 				//Calculate the fishing bonus
 				field = require(`../../config/field/${e.place}.json`);
-				bonus = Math.floor(level_bonus('fishing', e.fishing_level) * field.fishing_bonus);
+				bonus = Math.floor(level_bonus('fishing', e.fishing_level, m) * field.fishing_bonus);
 				//Calculate the fish rolled with the bonus
-				item = roll_fish(bonus, item_db_fish);
-				//Calculate experience and level change 
-				let level = e.fishing_level, exp = e.fishing_exp + item[3];
+				item = roll_fish(bonus, item_db_fish, m);
+				//Calculate experience and level change  [37]
+				let level = e.fishing_level, exp = e.fishing_exp + item[3] + (m.get(37) || 0);
 				if(exp >= gather_exp_next(level)) {
 					//Levels up
 					exp -= gather_exp_next(level++);
@@ -41,9 +48,6 @@ module.exports = {
 				//Player ID | Item ID | Item Value | NPC Sale | Action Type
 				b_con.push([e.player_id, item[0], item[1], item[2], e.what]);
 			});
-			//Process mining list here
-			//Process woodcutting list here
-
 			//Update player's experience and level for fishing
 			//extract index give me arrays
 			let sql_set_case_level = `fishing_level = CASE player_id `;
@@ -59,16 +63,6 @@ module.exports = {
 			sql_where_player_id += `${temp_str_arr.join(', ')})`;
 			//Return the total SQL Query
 			return db.query(`UPDATE player_life_skill SET ${sql_set_case_level}, ${sql_set_case_exp} WHERE ${sql_where_player_id}`);
-		}).then(() => {
-			if(skip)
-				return;
-			//Update player's experience and level for mining
-			return;
-		}).then(() => {
-			if(skip)
-				return;
-			//Update player's experience and level for woodcutting
-			return;
 		}).then(() => {
 			if(skip)
 				return;
@@ -234,6 +228,51 @@ module.exports = {
 	}
 }
 
+const passiveSplit = p => {
+	//AB123 => A B 123
+	const skill = new Map();
+	if(!p) return skill;
+	for(let i = 0; i < p.length; i += 5) {
+		let cs = p.charAt(i);
+		let id = p.charAt(i+1);
+		let lvl = p.substring(i+2, i+5);
+		if(skill.get(cs))
+			skill.set(cs, skill.get(cs).set(id, lvl))
+		else 
+			skill.set(cs, new Map().set(id, lvl));
+	}
+	return skill;
+}
+
+const extractTotalBonus = m => {
+	let sub = getDirectories(passive_path),pc,statMap = new Map();
+	for(let i = 0; i < sub.length; i++) {
+		pc = require('require-all')({
+			dirname: sub[i]
+		});
+		for(const k in pc) {
+			for(let key in pc[k])
+				if(pc[k].hasOwnProperty(key) && m.get(key))
+					m.get(key).forEach((e,mk) => {
+						//e is lvl, mk is id
+						let stat = pc[k][key]["stat"][parseInt(mk,32)];
+						//Insert the stat into statmap with levels
+						//Find the level
+						let level = fx.b32_to_dec(e);
+						//Insert the first set of stat					
+						statMap.set(stat[0][0], stat[0][1] * level + (statMap.get(stat[0][0]) ? statMap.get(stat[0][0]) : 0));
+						//First threshold is per 100 passive level
+						if(level >= 100)
+							statMap.set(stat[1][0], stat[1][1] * Math.floor(level / 100) + (statMap.get(stat[1][0]) ? statMap.get(stat[1][0]) : 0));
+						//Second threshold is per 500 passive level
+						if(level >= 500)
+							statMap.set(stat[2][0], stat[2][1] * Math.floor(level / 500) + (statMap.get(stat[2][0]) ? statMap.get(stat[2][0]) : 0));
+					});
+		}
+	}
+	return statMap;
+}
+
 const extract_index_list = (list, index) => {
 	let new_list = [];
 	for(let i = 0; i < list.length; i++) {
@@ -256,34 +295,43 @@ const gather_exp_next = level => {
 	return base;
 }
 
-const level_bonus = (type, value) => {
+const level_bonus = (type, value, p) => {
+	/* [38] Fishing Value = initial starting points
+	 * [43] Fishing Range = Variance value range up
+	 * [44] Fishing Power = More chance to increase
+	 * [46] Fishing Base = More base variance
+	 */
 	switch(type) {
 		case 'fishing' : 
-			let increment = 0.5, total = 0;
+			let increment = 0.5, total = p.get(38) || 0;
 			//Level Bonus
-			for(let i = 0; i < value; i++) {
+			for(let i = 0; i < value + (p.get(44) || 0); i++) {
 				total += increment;
-				increment += (value / 5) * 0.05;
+				increment += (i / 5) * 0.05;
 			}
 			//Variance (-20% ~ 20% + passive)
-			return Math.floor(total * (rand(100 * 0.8, 100 * 1.2) / 100.))
+			return Math.floor(total * rand(
+				(100 + (p.get(46) || 0)) * (80 + (p.get(43) || 0)) / 100., 
+				(100 + (p.get(46) || 0)) * (120 + (p.get(43) || 0)) / 100.));
 	}
 }
 
-const roll_fish = (value, fishes) => {
+const roll_fish = (value, fishes, m) => {
 	//Player has up to 75% chance to roll a next higher tier fish
 	//Each successful roll decreases the pool by 50%
-	let chance_rolled, tier = 0, tier_max = fishes.item_id.length - 1;
+	//[45] Fishing Rarity is applied here for tier multi
+	let chance_rolled, tier = 0, tier_max = fishes.item_id.length - 1, tierMulti = 1.00;
 	for(let i = 0; i < fishes.item_id.length; i++) {
 		chance_rolled = rand(0, 100);
 		if(Math.min(value, 75) >= chance_rolled) {
 			tier++;
-			value /= 2;
+			value *= 0.20;
+			tierMulti *= (110 + (m.get(45) || 0)) / 100.;
 		} else
 			break;
 	}
 	tier = Math.min(tier, tier_max);
-	return [fishes.item_id[tier], Math.floor(fishes.value[tier] + Math.sqrt(value)), fishes.cost[tier], fishes.exp[tier]];
+	return [fishes.item_id[tier], Math.floor(tierMulti * (fishes.value[tier] + Math.sqrt(value))), fishes.cost[tier], fishes.exp[tier]];
 }
 
 const rand = (min, max) => {

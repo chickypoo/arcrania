@@ -71,13 +71,13 @@ module.exports.run = async (bot, msg, arg) => {
 											sql.database_connect().then(con => {
 												con.query(statSQL);
 												con.end();
-											})
-											.catch(err => {
+											}).catch(err => {
 												console.log(err);
 											});
 										} else {
 											//Player declines with the selection
 										}
+										talked.delete(user_id);
 									})
 									.catch(() => {
 										msg.reply(`\`\`\`You did not vote. No changes made.\`\`\``);

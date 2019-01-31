@@ -1,4 +1,5 @@
 let fx = require('./method/modules.js');
+const Discord = require('discord.js');
 
 //Nick McCurdy's answer from StackOverflow
 //URL: https://stackoverflow.com/questions/18112204/get-all-directories-within-directory-nodejs
@@ -55,7 +56,7 @@ module.exports.run = async (bot, msg, arg) => {
 		} else if(arg.length == 1 && validPassiveID(arg[0])) {
 			//Display the information of the listed ID
 			console.log(`skill ID`);
-			console.log(passiveSplit(passives.passive_t1));
+			msg.reply(buildEmbed_id(arg[0]));
 		} else if(arg.length == 1 && arg[0].toLowerCase() == 'learn') {
 			//Display all ID that player can learn
 			console.log(`skill learn`);
@@ -76,9 +77,63 @@ module.exports.run = async (bot, msg, arg) => {
 	});
 }
 
+const single_passive = id => {
+	let sub = getDirectories(passive_path),pc;
+	for(let i = 0; i < sub.length; i++) {
+		pc = require('require-all')({
+			dirname: sub[i]
+		});
+		for(const k in pc) {
+			for(let key in pc[k])
+				if(key == id.charAt(0).toUpperCase()) {
+					let index = fx.b32_to_dec(id.substring(1,2));
+					let json = pc[k][key];
+					return {"name":json.name[index],"stat":json.stat[index],"req":json.req[index],"max":json.max[index],"cost":json.cost[index],"time":json.time[index]};
+				}
+		}
+	}
+	return null;
+}
+const buildEmbed_id = c => {
+	const p = single_passive(c);
+	//Build embed based on the ID fetched
+	const embed = new Discord.RichEmbed()
+		.setTitle(`Passive Skill ID: ${c.toUpperCase()}`)
+		.addField(`Passive Name`,p.name)
+		.addField(`Bonus Stats`,arrLayout(p.stat),true)
+		.addField(`Max Level`,p.max,true)
+		.addField(`Requirement`,reqSplit(p.req) || 'None')
+		.addField(`Gold Cost`,p.cost,true)
+		.addField(`Time Required`,`${p.time} Minutes`,true)
+		.setFooter("Basic Stats are gained every level. Veteran Stats are gained every 100 levels. Bonus are acquired every 500 levels.");
+	return embed;
+}
+
+const reqSplit = arr => {
+	//['ABC','ABC'] --> [['AB','C'],['AB','C']], A = Class, B = ID, C = Level
+	let str = [];
+	for(let v of arr)
+		str.push(`${fx.b32_to_dec(v.substring(2,5))} levels in ${idString(v.substring(0,2))} [ID: ${v.substring(0,2)}]`);
+	return null || str.join('\n');
+}
+
+const idString = cid => {
+	let sub = getDirectories(passive_path), pc;
+	for(let i = 0; i < sub.length; i++) {
+		pc = require('require-all')({
+			dirname: sub[i]
+		});
+		for(const k in pc)
+			for(let cls in pc[k])
+				if(cls == cid.charAt(0).toUpperCase()) { //Correct class selection
+					let id = fx.b32_to_dec(cid.substring(1,2));
+					return pc[k][cls].name[id];
+				}
+	}
+}
+
 const buildEmbed_stat = p => {
 	//Find all ID of player
-	const Discord = require('discord.js');
 	let s1 = new Map(), s2 = new Map(), s3 = new Map();
 	let m = [extractTotalBonus(passiveSplit(p.passive_t1))
 		,extractTotalBonus(passiveSplit(p.passive_t2))
@@ -108,9 +163,18 @@ const buildEmbed_stat = p => {
 const mapLayout = m => {
 	let str = [];
 	m.forEach((e, k) => {
-		str.push(`${e} ${k}`);
+		str.push(`${e}${k}`);
 	});
 	return str.length ? str.join('\n') : 'None';
+}
+
+const arrLayout = a => {
+	let str = [],i = 0;
+	const str_ = ["Basic Stat","Veteran Stat","Bonus"];
+	a.forEach(e => {
+		str.push(`${str_[i++]}: ${e[1]}${single_string(idStatString(e[0]))}`);
+	});
+	return str.join('\n');
 }
 
 const extractTotalBonus = m => {
@@ -128,8 +192,14 @@ const extractTotalBonus = m => {
 						//Insert the stat into statmap with levels
 						//Find the level
 						let level = fx.b32_to_dec(e);
-						//Insert the first set of stat
+						//Insert the first set of stat					
 						statMap.set(stat[0][0], stat[0][1] * level + (statMap.get(stat[0][0]) ? statMap.get(stat[0][0]) : 0));
+						//First threshold is per 100 passive level
+						if(level >= 100)
+							statMap.set(stat[1][0], stat[1][1] * Math.floor(level / 100) + (statMap.get(stat[1][0]) ? statMap.get(stat[1][0]) : 0));
+						//Second threshold is per 500 passive level
+						if(level >= 500)
+							statMap.set(stat[2][0], stat[2][1] * Math.floor(level / 500) + (statMap.get(stat[2][0]) ? statMap.get(stat[2][0]) : 0));
 					});
 		}
 	}
@@ -137,20 +207,25 @@ const extractTotalBonus = m => {
 }
 
 const idStatString = id => {
-	/* Health		0 ~ 2		 	Armor 		3 ~ 5		DMG 			6 ~ 8
-	 * CDmg			9 ~ 11	  CRate 		12 ~ 14 Mana			15 ~ 17
-	 * Magic 		18 ~ 20		Pen 			21 ~ 23 DR 				24 ~ 26
-	 * EXP 			27 ~ 29 	Max 			30 ~ 32 CDmg_			33 ~ 35
-	 * C%- 			36 ~ 36 	Fish			37 ~ 38 Mining		39 ~ 40
-	 * WC 			41 ~ 42   			
-	 */
-	 const m_def = new Map([[0,"Health"],[1,"Increased Health"],[2,"More Health"],[3,"Armor"],[4,"Increased Armor"],[5,"More Armor"],[15,"Mana"],[16,"Increased Mana"],[17,"More Mana"],
-	 	[24,"Damage Reduction"],[25,"Increased Damage Reduction"],[26,"More Damage Reduction"],[27,"Combat EXP"],[28,"Increased Combat EXP"],[29,"More Combat EXP"]]);
-	 const m_off = new Map([[6,"Damage"],[7,"Increased Damage"],[8,"More Damage"],[9,"Critical Damage"],[10,"Increased Critical Damage"],[11,"More Critical Damage"],[12,"Increased Critical Rate"],
-	 	[13,"Greatly Increased Critical Rate"],[14,"More Critical Rate"],[18,"Magic"],[19,"Increased Magic"],[20,"More Magic"],[21,"Penetration"],[22,"Increased Penetration"],[23,"More Penetration"],
-	 	[30,"Max DMG"],[31,"Increased Max DMG"],[32,"More Max DMG"],[33,"Critical Damage Rate"],[34,"Increased Critical Damage Rate"],[35,"More Critical Damage Rate"],[36,"More Critical Damage per level"]]);
-	 const m_ls = new Map([[37,"Fishing EXP"],[38,"Fishing Value"],[39,"Mining EXP"],[40,"Increased Mining Damage"],[41,"Woodcutting EXP"],[42,"Increased Woodcutting Damage"]]);
+	//Continue with 47
+	 const m_def = new Map([[0," Health"],[1,"% Increased Health"],[2,"% More Health"],[3," Armor"],[4,"% Increased Armor"],[5,"% More Armor"],[15," Mana"],[16,"% Increased Mana"],[17,"% More Mana"],
+	 	[24," Damage Reduction"],[25,"% Increased Damage Reduction"],[26,"% More Damage Reduction"],[27," Combat EXP"],[28,"% Increased Combat EXP"],[29,"% More Combat EXP"]]);
+	 const m_off = new Map([[6," Damage"],[7,"% Increased Damage"],[8,"% More Damage"],[9," Critical Damage"],[10,"% Increased Critical Damage"],[11,"% More Critical Damage"],[12,"% Increased Critical Rate"],
+	 	[13,"% Greatly Increased Critical Rate"],[14,"% More Critical Rate"],[18," Magic"],[19,"% Increased Magic"],[20,"% More Magic"],[21," Penetration"],[22,"% Increased Penetration"],[23,"% More Penetration"],
+	 	[30," Max DMG"],[31,"% Increased Max DMG"],[32,"% More Max DMG"],[33," Critical Damage Rate"],[34,"% Increased Critical Damage Rate"],[35,"% More Critical Damage Rate"],[36,"% More Critical Damage and 20% Less Critical Rate per level"]]);
+	 const m_ls = new Map([[37," Fishing EXP"],[38," Fishing Value"],[39," Mining EXP"],[40,"% Increased Mining Damage"],[41," Woodcutting EXP"],[42,"% Increased Woodcutting Damage"],[43,"% Fish Quality Range"],
+	 	[44," Fishing Power"],[45,"% Fishing Rarity Bonus"],[46,"% Fish Base Quality"]]);
 	 return [m_def.get(id), m_off.get(id), m_ls.get(id)];
+}
+
+const isString = arg => {
+	return (Object.prototype.toString.call(arg) === "[object String]") || (typeof arg === 'string') || (arg instanceof String);
+}
+
+const single_string = arr => {
+	for(let e of arr)
+		if(isString(e)) return e;
+	return null;
 }
 
 const passiveSplit = p => {
