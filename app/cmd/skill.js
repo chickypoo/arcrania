@@ -55,11 +55,11 @@ module.exports.run = async (bot, msg, arg) => {
 			msg.reply(buildEmbed_stat(passives));
 		} else if(arg.length == 1 && validPassiveID(arg[0])) {
 			//Display the information of the listed ID
-			console.log(`skill ID`);
 			msg.reply(buildEmbed_id(arg[0]));
 		} else if(arg.length == 1 && arg[0].toLowerCase() == 'learn') {
 			//Display all ID that player can learn
 			console.log(`skill learn`);
+			msg.reply(buildEmbed_canlearn(passives));
 		} else if(arg.length == 2 && arg[0].toLowerCase() == 'learn' && validPassiveID(arg[1].toLowerCase())) {
 			//Puts the ID into queue
 			console.log(`skill learn ID`);
@@ -75,6 +75,98 @@ module.exports.run = async (bot, msg, arg) => {
 		if(db && db.end) db.end();
 		console.log(e);
 	});
+}
+
+const buildEmbed_canlearn = a => {
+	//Get all passive learnt and their max level
+	//Mapping all learnt
+	let haveArr = new Array();
+	for(let name in a) {
+		if(!a[name]) continue;
+		for(let i = 0; i < a[name].length; i += 5)
+			haveArr.push([a[name].substring(i,i+1), a[name].substring(i+1,i+2), fx.b32_to_dec(a[name].substring(i+2,i+5))]);
+	}
+	haveArr.sort();
+	//Fetch and compile for nonmax and new in req
+	let learnables = getUpgradeAndLearn(a,haveArr);
+	//Fetch the passive name from the library (return map)
+	let upgradableNames = getNameFromID(learnables[0]), learnableNames = getNameFromID(learnables[1]);
+	let upgradeStr = new Array(),learnStr = new Array();
+	upgradableNames.forEach((v,k) => {
+		upgradeStr.push(`${v} (ID: ${k})`);
+	});
+	learnableNames.forEach((v,k) => {
+		learnStr.push(`${v} (ID: ${k})`);
+	});
+	const embed = new Discord.RichEmbed()
+		.setTitle(`List of Learnable Passives`)
+		.addField(`Old Passives to Upgrade`, upgradeStr.length ? upgradeStr.join(', ') : 'None')
+		.addField(`New Passives to Learn`, learnStr.length ? learnStr.join(', ') : 'None')
+		.setFooter(`To learn or upgrade passives, use >>skill learn [ID].`)
+		.setColor('PURPLE');
+		
+	return embed;
+}
+
+const getNameFromID = s => {
+	let sub = getDirectories(passive_path),pc, m = new Map();
+	for(let i = 0; i < sub.length; i++) {
+		pc = require('require-all')({
+			dirname: sub[i]
+		});
+		for(const k in pc) {
+			for(let key in pc[k])
+				for(let i = 0; i < pc[k][key].id.length; i++) {
+					if(s.has(`${key}${fx.dec_to_b32(i)}`))
+						m.set(`${key}${fx.dec_to_b32(i)}`, pc[k][key].name[i]);
+					if(m.size === s.size)
+						return m;
+				}
+		}
+	}
+}
+
+const getUpgradeAndLearn = (a,arr) => {
+	let returnMap = new Map(), newSet = new Set(), canUpgrade = new Set(), canLearn = new Set();
+	let sub = getDirectories(passive_path),pc,index = 0,p = '';
+	for(let k in a)
+		if(a[k])
+			p += a[k];
+	for(let i = 0; i < sub.length; i++) {
+		pc = require('require-all')({
+			dirname: sub[i]
+		});
+		for(const k in pc)
+			for(let key in pc[k]) {
+				//Get max level
+				while(index < arr.length && arr[index][0] == key)
+					returnMap.set(`${key}${arr[index][1]}`,pc[k][key].max[fx.b32_to_dec(arr[index++][1])]);
+				//Get any Requirement that is either NULL or met expectation
+				for(let j = 0; j < pc[k][key].id.length; j++)
+					if(pc[k][key].req[j].length == 0 || metReq(p,pc[k][key].req[j]))
+						newSet.add(`${key}${fx.dec_to_b32(j)}`);
+			}
+	}
+	//Find all passive that can be upgraded (Player's passive)
+	for(let i = 0; i < p.length; i += 5)
+		if(fx.b32_to_dec(p.substring(i+2,i+5)) < returnMap.get(p.substring(i, i+2)))
+			canUpgrade.add(p.substring(i,i+2));
+	//Find new passive that can learn, met the requirement
+	newSet.forEach(e => {
+		if(p.indexOf(e) === -1 && !canUpgrade.has(e))
+			canLearn.add(e);
+	});
+	return [canUpgrade, canLearn];
+}
+
+const metReq = (p, req) => {
+	//Search each in constructed set
+	for(let i = 0; i < req.length; i++) {
+		let found = p.indexOf(req[i].substring(0,2));
+		if(found === -1) return false;
+		if(fx.b32_to_dec(p.substring(found+2,found+5)) < req[i].substring(2,5)) return false;
+	}
+	return true;
 }
 
 const single_passive = id => {
