@@ -1,6 +1,7 @@
 const bot_setting = require("./config/bot.json");
 const gatherer = require("./cmd/method/gather.js");
 const merger = require("./cmd/method/merge.js").merge_inventory;
+const teacher = require("./cmd/method/teaching.js");
 
 const Discord = require("discord.js");
 const bot = new Discord.Client();
@@ -34,6 +35,10 @@ bot.on("ready", () => {
 	setInterval(gatherer.process_miner, 1000);
 	//Merge inventory of same player
 	setInterval(merger, 10000);
+	//The teacher takes a student for learning every 5s
+	setInterval(function() {
+		teacher.teaching(teacher.ableToLearn);
+	}, 5000);
 });
 
 bot.on("message", async message => {

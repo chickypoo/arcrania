@@ -1,7 +1,7 @@
 module.exports = {
 	format_shift_left : (value, length) => value.toString().padStart(Math.min(value.toString().length, length), ' '),
 
-	dec_to_b32 : dec => dec.toString(32),
+	dec_to_b32 : dec => dec.toString(32).toUpperCase(),
 
 	b32_to_dec : b32 => parseInt(b32, 32),
 

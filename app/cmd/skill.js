@@ -49,7 +49,6 @@ module.exports.run = async (bot, msg, arg) => {
 		return;
 	}).then(() => {
 		if(skip) return;
-		console.log("Checkpoint 1");
 		if(!arg[0]) {
 			//Display all passives the player has
 			msg.reply(buildEmbed_stat(passives));
@@ -70,13 +69,11 @@ module.exports.run = async (bot, msg, arg) => {
 				msg.reply(`You either cannot learn the skill ${arg[1].toUpperCase()} due to requirement not met or not enough gold. Check the pre-requisite of the skill with >>skill ${arg[1].toUpperCase()}`);
 		} else if(arg.length == 1 && arg[0].toLowerCase() == 'queue') {
 			//Display all learning queue the player has
-			console.log(`skill queue`);
 			sqlType = 2;
 			return db.query(`SELECT TIMESTAMPDIFF(MINUTE,CURRENT_TIMESTAMP(),learning_finish) AS toFinish FROM upgrade_queue WHERE player_id = '${user_id}' ORDER BY learning_finish DESC`);
 		}
 		skip = true;
 		return;
-		console.log(`Checkpoint 2`);
 	}).then(res => {
 		if(skip) return;
 		//Enlist the skill into the queue
