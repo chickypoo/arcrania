@@ -13,7 +13,7 @@ module.exports.run = async (bot, msg, arg) => {
 	let user_id = msg.author.id;
 	let sql = require(`./method/connect.js`);
 
-	let db, skip, passives, gold;
+	let db, skip, passives, gold, sqlType, timeToLearn;
 	
 	sql.database_connect().then(con => {
 		db = con;
@@ -58,16 +58,43 @@ module.exports.run = async (bot, msg, arg) => {
 			msg.reply(buildEmbed_id(arg[0]));
 		} else if(arg.length == 1 && arg[0].toLowerCase() == 'learn') {
 			//Display all ID that player can learn
-			console.log(`skill learn`);
 			msg.reply(buildEmbed_canlearn(passives));
 		} else if(arg.length == 2 && arg[0].toLowerCase() == 'learn' && validPassiveID(arg[1].toLowerCase())) {
 			//Puts the ID into queue
-			console.log(`skill learn ID`);
+			timeToLearn = ableToLearn(arg[1], passives, gold);
+			if(timeToLearn[0]) {
+				//Grab the latest timestamp from the skill set
+				sqlType = 1;
+				return db.query(`SELECT TIMESTAMPDIFF(SECOND,CURRENT_TIMESTAMP(),learning_finish) AS toFinish FROM upgrade_queue WHERE player_id = '${user_id}' ORDER BY learning_finish DESC LIMIT 1`);
+			} else
+				msg.reply(`You either cannot learn the skill ${arg[1].toUpperCase()} due to requirement not met or not enough gold. Check the pre-requisite of the skill with >>skill ${arg[1].toUpperCase()}`);
 		} else if(arg.length == 1 && arg[0].toLowerCase() == 'queue') {
 			//Display all learning queue the player has
 			console.log(`skill queue`);
+			sqlType = 2;
+			return db.query(`SELECT TIMESTAMPDIFF(MINUTE,CURRENT_TIMESTAMP(),learning_finish) AS toFinish FROM upgrade_queue WHERE player_id = '${user_id}' ORDER BY learning_finish DESC`);
 		}
+		skip = true;
+		return;
 		console.log(`Checkpoint 2`);
+	}).then(res => {
+		if(skip) return;
+		//Enlist the skill into the queue
+		if(sqlType == 1)
+			return db.query(`INSERT INTO upgrade_queue VALUES ('${user_id}','${arg[1].toUpperCase()}',TIMESTAMPADD(SECOND,${timeToLearn[0] * 60 + (res[0] ? res[0].toFinish : 0)},CURRENT_TIMESTAMP()))`);
+		else {
+			if(!res[0])
+				msg.reply(`You do not have any skill upgrading at the moment.`);
+			else
+				msg.reply(`You have ${res.length} skill in queue and will be finished in ${res[0].toFinish} minutes.`);
+			skip = true;
+			return;
+		}
+	}).then(() => {
+		if(skip) return;
+		//Deduct the gold cost from player's wallet
+		msg.reply(`You have used ${timeToLearn[1]} gold to learn the skill ${arg[1].toUpperCase()}. Time required: ${timeToLearn[0]} minutes.`);
+		return db.query(`UPDATE player_currency SET gold = gold - ${timeToLearn[1]} WHERE player_id = '${user_id}'`);
 	}).then(() => {
 		//Close database connect
 		return db.end();
@@ -75,6 +102,20 @@ module.exports.run = async (bot, msg, arg) => {
 		if(db && db.end) db.end();
 		console.log(e);
 	});
+}
+
+const ableToLearn = (id, a, gold) => {
+	//Checks if player can learn the said skill
+	let haveArr = new Array();
+	for(let name in a) {
+		if(!a[name]) continue;
+		for(let i = 0; i < a[name].length; i += 5)
+			haveArr.push([a[name].substring(i,i+1), a[name].substring(i+1,i+2), fx.b32_to_dec(a[name].substring(i+2,i+5))]);
+	}
+	haveArr.sort();
+	let learnables = getUpgradeAndLearn(a, haveArr);
+	let sid = single_passive(id);
+	return [((learnables[0].has(id.toUpperCase()) || learnables[1].has(id.toUpperCase())) && gold >= sid.cost) ? sid.time : 0, sid.cost];
 }
 
 const buildEmbed_canlearn = a => {
