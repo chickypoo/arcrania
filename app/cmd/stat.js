@@ -10,7 +10,7 @@ const talked = new Set();
 module.exports.run = async (bot, msg, arg) => {
 	let user_id = String(msg.author.id);
 
-	let db, db2, player, row, reply, skip = false, statSQL, lifeskill;
+	let db, db2, player, row, reply, skip = false, statSQL, lifeskill,p;
 
 	sql.database_connect().then(con => {
 		db = con;
@@ -120,9 +120,27 @@ module.exports.run = async (bot, msg, arg) => {
 		lifeskill = res[0];
 		return;
 	}).then(() => {
-		if(skip) return db.end();
+		if(skip) return;
 		player.setLife(lifeskill);
-		msg.reply(build_stat_embed(player, msg.author));
+		//msg.reply(build_stat_embed(player, msg.author));
+		return db.query(`SELECT passive_t1 AS t1, passive_t2 AS t2, passive_t3 AS t3, passive_t4 AS t4, lifeskill AS ls from player_passive WHERE player_id = '${user_id}'`);
+	}).then(res => {
+		if(skip) return;
+		if(!res[0]) {
+			p = {"t1": null,"t2": null,"t3": null,"t4": null,"ls": null}
+			return db.query(`INSERT INTO player_passive (player_id) VALUES ('${user_id}')`);
+		}
+		else {
+			p = res[0];
+			return;
+		}
+	}).then(() => {
+		if(skip) return;
+		player.setPassive(p);
+		player.decodePassives();
+		msg.reply(build_stat_embed(player,msg.author));
+		return;
+	}).then(() => {
 		return db.end();
 	}).catch(err => {
 		if(db && db.end) db.end();
@@ -155,7 +173,7 @@ const build_stat_embed = (data, author) => {
 		.addBlankField()
 		.addField(`Combat Power (Defensive)`, `HP: ${data.getHP()}\nMP: ${data.getMP()}\nAP: ${data.getAP()}`, true)
 		.addField(`Combat Power (Offensive)`, `ATK: ${data.getMinAtk()} ~ ${data.getMaxAtk()}\n`
-			+`Critical Rate: ${data.getCritRate()}%\n`
+			+`Critical Rate Increase: ${data.getCritRate()}%\n`
 			+`Critical DMG: ${data.getCritDmg()[0]}% | ${data.getCritDmg()[1]}\n`
 			+`Penetration: ${data.getPenetration()}\n`
 			+`Magic: ${data.getMagic()}`, true)

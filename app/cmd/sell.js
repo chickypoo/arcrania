@@ -42,6 +42,7 @@ module.exports.run = async (bot, msg, arg) => {
 			skip = true;
 			return;
 		}
+		dnum = Math.min(res[0].amount, dnum);
 		//Find the item name from library
 		let sub = getDirectories(item_path), i_lib, iName;
 		for(let i = 0; i < sub.length; i++) {

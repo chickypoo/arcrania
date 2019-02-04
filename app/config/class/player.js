@@ -9,6 +9,11 @@ class Player {
 		this.balance = balance;
 		this.base = base;
 		this.lifeskill = lifeskill
+		this.t1 = null;
+		this.t2 = null;
+		this.t3 = null;
+		this.t4 = null;
+		this.ls = null;
 	}
 
 	map_player_to_map() {
@@ -91,11 +96,11 @@ class Player {
 		//Health from Balance
 		t_hp += this.balance * this.base.balance.hp;
 		//Health from Passive Skill Tree
-
+		t_hp += this.totalP.get(0) || 0;
 		//Health Increased from Passive Skill Tree
-
+		t_hp *= (1 + 0.01 * (this.totalP.get(1) || 0.00));
 		//Health Multiplied from Passive Skill Tree
-
+		t_hp *= Math.pow(1.01,this.totalP.get(2) || 0);
 		return Math.floor(t_hp);
 	}
 
@@ -115,11 +120,11 @@ class Player {
 		//Mana from Balance
 		t_mp += this.balance * this.base.balance.mp;
 		//Mana from Passive Skill Tree
-
+		t_mp += this.totalP.get(15) || 0;
 		//Mana Increased from Passive Skill Tree
-
+		t_mp *= (1 + 0.01 * (this.totalP.get(16) || 0.00));
 		//Mana Multiplied from Passive Skill Tree
-
+		t_mp *= Math.pow(1.01,this.totalP.get(17) || 0);
 		return Math.floor(t_mp);
 	}
 
@@ -139,11 +144,11 @@ class Player {
 		//Armor from Balance
 		t_ap += this.balance * this.base.balance.ap;
 		//Armor from Passive Skill Tree
-
+		t_ap += this.totalP.get(3) || 0;
 		//Armor Increased from Passive Skill Tree
-
+		t_ap *= (1 + 0.01 * (this.totalP.get(4) || 0.00));
 		//Armor Multiplied from Passive Skill Tree
-
+		t_ap *= Math.pow(1.01,this.totalP.get(5) || 0);
 		return Math.floor(t_ap);
 	}
 
@@ -163,11 +168,11 @@ class Player {
 		//Max from Balance
 		max += this.balance * this.base.balance.max;
 		//Max from Passive Skill Tree
-
+		max += (this.totalP.get(6) || 0) + (this.totalP.get(30) || 0);
 		//Max Increased from Passive Skill Tree
-
+		max *= (1 + 0.01 * ((this.totalP.get(7) || 0.00) + (this.totalP.get(31) || 0.00)));
 		//Max Multiplied from Passive Skill Tree
-
+		max *= Math.pow(1.01,(this.totalP.get(8) || 0) + (this.totalP.get(32) || 0));
 		return Math.floor(max);
 	}
 
@@ -187,11 +192,11 @@ class Player {
 		//Min from Balance
 		min += this.balance * this.base.balance.min;
 		//Min from Passive Skill Tree
-
+		min += (this.totalP.get(6) || 0) * 0.5;
 		//Min Increased from Passive Skill Tree
-
+		min *= (1 + 0.01 * (this.totalP.get(7) || 0.00));
 		//Min Multiplied from Passive Skill Tree
-
+		min *= Math.pow(1.01,this.totalP.get(8) || 0);
 		return Math.floor(min);
 	}
 
@@ -211,11 +216,12 @@ class Player {
 		//Critical Rate from Balance
 		crate += this.balance * this.base.balance.crate;
 		//Critical Rate from Passive Skill Tree
-
+		crate += this.totalP.get(12) || 0;
 		//Critical Rate Increased from Passive Skill Tree
-
+		crate *= (1 + 0.01 * (this.totalP.get(13) || 0.00));
 		//Critical Rate Multiplied from Passive Skill Tree
-
+		crate *= Math.pow(1.01,this.totalP.get(14) || 0);
+		crate *= Math.pow(0.80,this.totalP.get(36) || 0);
 		return Math.floor(crate);
 	}
 
@@ -241,12 +247,16 @@ class Player {
 		cdmgp += this.balance * this.base.balance.cdmgp;
 		cdmgf += this.balance * this.base.balance.cdmgf;
 		//Critical Damage (Percent and Flat) from Passive Skill Tree
-
+		cdmgp += this.totalP.get(33) || 0;
+		cdmgf += this.totalP.get(9) || 0;
 		//Critical Damage Increased (Percet and Flat) from Passive Skill Tree
-
+		cdmgp *= (1 + 0.01 * (this.totalP.get(34) || 0));
+		cdmgf *= (1 + 0.01 * (this.totalP.get(10) || 0));
 		//Critical Damage Multiplied (Percent and Flat) from Passive Skill Tree
-
-		return [Math.floor(cdmgp), Math.floor(cdmgf)];
+		cdmgp *= Math.pow(1.01,this.totalP.get(35) || 0);
+		cdmgf *= Math.pow(1.01,this.totalP.get(11) || 0);
+		cdmgf *= Math.pow(1.20,this.totalP.get(36) || 0);
+		return [Math.floor(cdmgp * 100) / 100., Math.floor(cdmgf)];
 	}
 
 	getPenetration() {
@@ -265,11 +275,11 @@ class Player {
 		//Penetration from Balance
 		pen += this.balance * this.base.balance.pen;
 		//Penetration from Passive Skill Tree
-
+		pen += this.totalP.get(21) || 0;
 		//Penetration Increased from Passive Skill Tree
-
+		pen *= (1 + 0.01 * (this.totalP.get(22) || 0.00));
 		//Penetration Multiplied from Passive Skill Tree
-
+		pen *= Math.pow(1.01,this.totalP.get(23) || 0);
 		return Math.floor(pen);
 	}
 
@@ -289,12 +299,86 @@ class Player {
 		//Magic from Balance
 		magic += this.balance * this.base.balance.magic;
 		//Magic from Passive Skill Tree
-
+		magic += this.totalP.get(18) || 0;
 		//Magic Increased from Passive Skill Tree
-
+		magic *= (1 + 0.01 * (this.totalP.get(19) || 0));
 		//Magic Multiplied from Passive Skill Tree
-
+		magic *= Math.floor(1.01,this.totalP.get(20) || 0);
 		return Math.floor(magic);
+	}
+
+	getDR() {
+		//Damage Reduction from Passive Skill Tree
+		let dr = this.totalP.get(24) || 0;
+		//Damage Reduction Increased from Passive Skill Tree
+		dr *= (1 + 0.01 * (this.totalP.get(25) || 0.00));
+		//Damage Reduction Multiplied from Passive Skill Tree
+		dr *= Math.pow(1.01,this.totalP.get(26) || 0);
+		return dr;
+	}
+
+	getEXPBonus() {
+		//EXP Extra | EXP Increased | EXP Multiplier
+		return [this.totalP.get(27) || 0, (this.totalP.get(28) || 0) * 0.01, Math.pow(1.10,this.totalP.get(29) || 0)];
+	}
+
+	setPassive(p) {
+		this.t1 = p.t1;
+		this.t2 = p.t2;
+		this.t3 = p.t3;
+		this.t4 = p.t4;
+		this.ls = p.ls;
+	}
+
+	decodePassives() {
+		//Combine all passives into single line
+		let pStr = `${this.t1?this.t1:''}${this.t2?this.t2:''}${this.t3?this.t3:''}${this.t4?this.t4:''}${this.ls?this.ls:''}`;
+		const m = new Map();
+		//Obtain the directory of passive library Prepare
+		const path = '/home/arcrania/config/skill/passive/';
+		const { lstatSync, readdirSync} = require('fs');
+		const { join} = require('path');
+		const isDirectory = source => lstatSync(source).isDirectory();
+		const getDirectories = source => readdirSync(source).map(name => join(source, name)).filter(isDirectory);
+		const fx = require('../../cmd/method/modules.js');
+		//Initiate dir search
+		let sub = getDirectories(path),pc;
+		for(let i=0;i<sub.length;i++) {
+			pc=require('require-all')({
+				dirname: sub[i]
+			});
+			for(const k in pc) {
+				for(let key in pc[k]) {
+					//Keeplooping until  no more class of [key] in the passive [pStr]
+					//Input into map of Key -> ValueID, Value -> Sum of LEVEL * Amount
+					//Obtainable from stat of CID
+					while(pStr.indexOf(key) !== -1) {
+						let segIndex = pStr.indexOf(key);
+						let level = fx.b32_to_dec(pStr.substring(segIndex+2,segIndex+5));
+						let perks = pc[k][key].stat[fx.b32_to_dec(pStr.substring(segIndex+1,segIndex+2))];
+						//Insert into the total Map
+						//Basic perk
+						m.set(perks[0][0],(m.get(perks[0][0])?m.get(perks[0][0]):0)+perks[0][1]*level);
+						//Veteran perk
+						if(level >= 100 && perks.length > 1)
+							m.set(perks[1][0],(m.get(perks[1][0])?m.get(perks[1][0]):0)+perks[1][1]*Math.floor(level/100));
+						//Bonus perk
+						if(level >= 500 && perks.length > 2)
+							m.set(perks[2][0],(m.get(perks[2][0])?m.get(perks[2][0]):0)+perks[2][1]*Math.floor(level/500));
+						//Remove the segment from the string [pStr]
+						pStr = pStr.substring(0,segIndex) + pStr.substring(segIndex+5,pStr.length);
+					}
+					if(!pStr.length)
+						break;
+				}
+				if(!pStr.length)
+					break;
+			}
+			if(!pStr.length)
+				break;
+		}
+		console.log(m);
+		this.totalP = m;
 	}
 }
 

@@ -190,6 +190,7 @@ const getUpgradeAndLearn = (a,arr) => {
 		if(fx.b32_to_dec(p.substring(i+2,i+5)) < returnMap.get(p.substring(i, i+2)))
 			canUpgrade.add(p.substring(i,i+2));
 	//Find new passive that can learn, met the requirement
+	console.log(newSet);
 	newSet.forEach(e => {
 		if(p.indexOf(e) === -1 && !canUpgrade.has(e))
 			canLearn.add(e);
@@ -202,7 +203,7 @@ const metReq = (p, req) => {
 	for(let i = 0; i < req.length; i++) {
 		let found = p.indexOf(req[i].substring(0,2));
 		if(found === -1) return false;
-		if(fx.b32_to_dec(p.substring(found+2,found+5)) < req[i].substring(2,5)) return false;
+		if(fx.b32_to_dec(p.substring(found+2,found+5)) < fx.b32_to_dec(req[i].substring(2,5))) return false;
 	}
 	return true;
 }
@@ -325,10 +326,10 @@ const extractTotalBonus = m => {
 						//Insert the first set of stat					
 						statMap.set(stat[0][0], stat[0][1] * level + (statMap.get(stat[0][0]) ? statMap.get(stat[0][0]) : 0));
 						//First threshold is per 100 passive level
-						if(level >= 100)
+						if(level >= 100 && stat.length > 1)
 							statMap.set(stat[1][0], stat[1][1] * Math.floor(level / 100) + (statMap.get(stat[1][0]) ? statMap.get(stat[1][0]) : 0));
 						//Second threshold is per 500 passive level
-						if(level >= 500)
+						if(level >= 500 && stat.length > 2)
 							statMap.set(stat[2][0], stat[2][1] * Math.floor(level / 500) + (statMap.get(stat[2][0]) ? statMap.get(stat[2][0]) : 0));
 					});
 		}
@@ -338,14 +339,16 @@ const extractTotalBonus = m => {
 
 const idStatString = id => {
 	//Continue with 47
-	 const m_def = new Map([[0," Health"],[1,"% Increased Health"],[2,"% More Health"],[3," Armor"],[4,"% Increased Armor"],[5,"% More Armor"],[15," Mana"],[16,"% Increased Mana"],[17,"% More Mana"],
+	const m_def = new Map([[0," Health"],[1,"% Increased Health"],[2,"% More Health"],[3," Armor"],[4,"% Increased Armor"],[5,"% More Armor"],[15," Mana"],[16,"% Increased Mana"],[17,"% More Mana"],
 	 	[24," Damage Reduction"],[25,"% Increased Damage Reduction"],[26,"% More Damage Reduction"],[27," Combat EXP"],[28,"% Increased Combat EXP"],[29,"% More Combat EXP"]]);
-	 const m_off = new Map([[6," Damage"],[7,"% Increased Damage"],[8,"% More Damage"],[9," Critical Damage"],[10,"% Increased Critical Damage"],[11,"% More Critical Damage"],[12,"% Increased Critical Rate"],
+
+	const m_off = new Map([[6," Damage"],[7,"% Increased Damage"],[8,"% More Damage"],[9," Critical Damage"],[10,"% Increased Critical Damage"],[11,"% More Critical Damage"],[12,"% Increased Critical Rate"],
 	 	[13,"% Greatly Increased Critical Rate"],[14,"% More Critical Rate"],[18," Magic"],[19,"% Increased Magic"],[20,"% More Magic"],[21," Penetration"],[22,"% Increased Penetration"],[23,"% More Penetration"],
-	 	[30," Max DMG"],[31,"% Increased Max DMG"],[32,"% More Max DMG"],[33," Critical Damage Rate"],[34,"% Increased Critical Damage Rate"],[35,"% More Critical Damage Rate"],[36,"% More Critical Damage and 20% Less Critical Rate per level"]]);
-	 const m_ls = new Map([[37," Fishing EXP"],[38," Fishing Value"],[39," Mining EXP"],[40,"% Increased Mining Damage"],[41," Woodcutting EXP"],[42,"% Increased Woodcutting Damage"],[43,"% Fish Quality Range"],
+	 	[30," Max DMG"],[31,"% Increased Max DMG"],[32,"% More Max DMG"],[33," Critical Damage Rate"],[34,"% Increased Critical Damage Rate"],[35,"% More Critical Damage Rate"],[36,"10% More Critical Damage and 20% Less Critical Rate per level"]]);
+	
+	const m_ls = new Map([[37," Fishing EXP"],[38," Fishing Value"],[39," Mining EXP"],[40,"% Increased Mining Damage"],[41," Woodcutting EXP"],[42,"% Increased Woodcutting Damage"],[43,"% Fish Quality Range"],
 	 	[44," Fishing Power"],[45,"% Fishing Rarity Bonus"],[46,"% Fish Base Quality"]]);
-	 return [m_def.get(id), m_off.get(id), m_ls.get(id)];
+	return [m_def.get(id), m_off.get(id), m_ls.get(id)];
 }
 
 const isString = arg => {

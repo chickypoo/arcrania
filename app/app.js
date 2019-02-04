@@ -43,22 +43,21 @@ bot.on("ready", () => {
 
 bot.on("message", async message => {
 	if(message.author.bot) return;
-	if(talk.has(message.author.id)) {
-		message.reply(`You are entering commands too fast. There is a 2 second global cooldown.`);
-		return;
-	} else {
-		talk.add(message.author.id);
-		setTimeout(() => {
-			talk.delete(message.author.id);
-		}, 2000);
-	}
 	
 	let messages = message.content.split(" ");
 	let command = messages[0].toLowerCase();
 	let args = messages.slice(1);
 
 	if(!command.startsWith(bot_setting.prefix)) return;
-
+	if(talk.has(message.author.id)) {
+			message.reply(`You are entering commands too fast. There is a 2 second global cooldown.`);
+			return;
+		} else {
+			talk.add(message.author.id);
+			setTimeout(() => {
+				talk.delete(message.author.id);
+			}, 2000);
+		}
 	let cmd = bot.commands.get(command.slice(bot_setting.prefix.length));
 	if(cmd) {
 		cmd.run(bot, message, args);
