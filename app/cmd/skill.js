@@ -190,7 +190,6 @@ const getUpgradeAndLearn = (a,arr) => {
 		if(fx.b32_to_dec(p.substring(i+2,i+5)) < returnMap.get(p.substring(i, i+2)))
 			canUpgrade.add(p.substring(i,i+2));
 	//Find new passive that can learn, met the requirement
-	console.log(newSet);
 	newSet.forEach(e => {
 		if(p.indexOf(e) === -1 && !canUpgrade.has(e))
 			canLearn.add(e);
