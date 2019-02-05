@@ -66,6 +66,7 @@ module.exports.run = async (bot, msg, arg) => {
 	}).then(() => {
 		if(skip) return;
 		//Update player action to 'fighting'
+		msg.reply(`You have encountered a ${monster.name}!`);
 		return db.query(`UPDATE player_info SET player_act = 'fighting' WHERE player_id = '${userID}'`);
 	}).then(() => {
 		//Close database connection
@@ -126,9 +127,9 @@ const difficultyBonus = (mon, dif) => {
 			break;
 		case 'veteran' :
 			//Monster HP +175%, Monster AR +40%, Monster DMG/Magic/Pen +40%, Monster EXP +100%
-			//Roll 4-6 Extra innate abilities
+			//Roll 3-6 Extra innate abilities
 			//Loot are 100% better
-			affixes = fx.random(4,6);
+			affixes = fx.random(3,6);
 			mon.hp = Math.floor(mon.hp * 2.75);
 			mon.ar = Math.floor(mon.ar * 1.4);
 			mon.dmg = Math.floor(mon.dmg * 1.4);
@@ -139,9 +140,9 @@ const difficultyBonus = (mon, dif) => {
 			break;
 		case 'lunatic' :
 			//Monster HP +250%, Monster AR +50%, Monster DMG/Magic/Pen +50%, Monster EXP +125%
-			//Roll 6-8 Extra innate abilities
+			//Roll 5-10 Extra innate abilities
 			//Loot are 200% better
-			affixes = fx.random(6,8);
+			affixes = fx.random(5,10);
 			mon.hp = Math.floor(mon.hp * 3.5);
 			mon.ar = Math.floor(mon.ar * 1.5);
 			mon.dmg = Math.floor(mon.dmg * 1.5);
@@ -152,9 +153,9 @@ const difficultyBonus = (mon, dif) => {
 			break;
 		case 'hunter' :
 			//Monster HP +350%, Monster AR +60%, Monster DMG/Magic/Pen +60%, Monster EXP +150%
-			//Roll 8-10 Extra innate abilities
+			//Roll 8-12 Extra innate abilities
 			//Loot are 350% better
-			affixes = fx.random(8,10);
+			affixes = fx.random(8,12);
 			mon.hp = Math.floor(mon.hp * 4.5);
 			mon.ar = Math.floor(mon.ar * 1.6);
 			mon.dmg = Math.floor(mon.dmg * 1.6);
@@ -165,9 +166,9 @@ const difficultyBonus = (mon, dif) => {
 			break;
 		case 'monster' :
 			//Monster HP +500%, Monster AR +75%, Monster DMG/Magic/Pen +75%, Monster EXP +200%
-			//Roll 10-12 Extra innate abilities
+			//Roll 11-14 Extra innate abilities
 			//Loot are 650% better
-			affixes = fx.random(10,12);
+			affixes = fx.random(11,14);
 			mon.hp = Math.floor(mon.hp * 6);
 			mon.ar = Math.floor(mon.ar * 1.75);
 			mon.dmg = Math.floor(mon.dmg * 1.75);
