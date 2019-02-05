@@ -3,7 +3,7 @@ let sql = require("./method/connect.js");
 module.exports.run = async (bot, msg, arg) => {
 	let user_id = String(msg.author.id);
 
-	let db, reply;
+	let db, reply, skip;
 	sql.database_connect().then(con => {
 		db = con;
 		return db.query(`SELECT player_id FROM player_info WHERE player_id = '${user_id}'`);
@@ -15,7 +15,15 @@ module.exports.run = async (bot, msg, arg) => {
 			return db.query(`INSERT INTO player_info (player_id) VALUES ('${user_id}')`);
 		} else {
 			reply = `<@${user_id}>\n\`\`\`You are already inside the world of Arcrania.\`\`\``;
+			skip = true;
+			return;
 		}
+	}).then(() => {
+		if(skip) return;
+		return db.query(`INSERT INTO player_passive (player_id) VALUES ('${user_id}')`);
+	}).then(() => {
+		if(skip) return;
+		return db.query(`INSERT INTO player_stat (player_id) VALUES ('${user_id}')`);
 	}).then(() => {
 		msg.channel.send(reply);
 		return db.end();

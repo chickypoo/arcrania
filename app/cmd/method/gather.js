@@ -23,6 +23,7 @@ module.exports = {
 				skip = true;
 				return;
 			}
+			console.log("Processing fisher");
 			//Push all gatherer here
 			result.forEach(e => {
 				if(e.what == 'fishing')
@@ -310,9 +311,10 @@ const level_bonus = (type, value, p) => {
 				increment += (i / 5) * 0.05;
 			}
 			//Variance (-20% ~ 20% + passive)
-			return Math.floor(total * rand(
+			total = Math.floor(total * rand(
 				(100 + (p.get(46) || 0)) * (80 + (p.get(43) || 0)) / 100., 
-				(100 + (p.get(46) || 0)) * (120 + (p.get(43) || 0)) / 100.));
+				(100 + (p.get(46) || 0)) * (120 + (p.get(43) || 0)) / 100.)/100.) ;
+			return total;
 	}
 }
 

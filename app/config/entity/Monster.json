@@ -1,0 +1,38 @@
+{
+	"Neward" : {
+		"id" :
+			[0,1,2],
+		"name" : 
+			["Wild Hog","Armored Hog","Big Hog"],
+		"tag" : 
+			["Animal,Boar,Small","Animal,Boar,Small,Armored","Animal,Boar,Big"],
+		"appearance" : 
+			[65, 25, 10],
+		"hp" : 
+			[30, 30, 80],
+		"ar" : 
+			[5, 10, 5],
+		"dr" : 
+			[0, 2, 0],
+		"res": 
+			["","",""],
+		"dmg" : 
+			[2, 2, 3],
+		"crate" : 
+			[0, 0, 0],
+		"cdmg" : 
+			[1.1, 1.1, 1.1],
+		"pen" : 
+			[0, 0, 0],
+		"magic" : 
+			[0, 0, 0],
+		"exp" : 
+			[1, 2, 3],
+		"loot" : 
+			["900-60-3","900-60-5","900-60-8"],
+		"playstyle" : 
+			[80,80,80],
+		"skill" : 
+			[["70-A01","30-A11"],["60-A02","40-A12"],["55-A03","45-A13"]]
+	}
+}

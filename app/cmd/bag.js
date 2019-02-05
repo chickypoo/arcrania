@@ -105,7 +105,7 @@ const format_bag_output = (bag, lib, page) => {
 	for(let i = (cur_page-1) * 20; i < bag.length && i < cur_page * 20; i++) {
 		//ID (up to 10 digit or 7 b32) Amount (up to 3 digit or 2 b32) x Item Name
 		amount += bag[i].amount;
-		str += `${fx.dec_to_b32(bag[i].inventory_id).toUpperCase().padEnd(' ', 5)} | ${bag[i].amount.toString().padStart(' ', 3)} x ${lib.get(bag[i].item_id)}\n`;
+		str += `${fx.dec_to_b32(bag[i].inventory_id).toUpperCase().padEnd(' ', 5)} | ${bag[i].amount.toString().padStart(' ', 3)} x ${lib.get(bag[i].item_id)} (Value: ${bag[i].arg_1})\n`;
 	}
 	return [str, cur_page, amount];
 }
