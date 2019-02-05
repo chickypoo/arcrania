@@ -377,7 +377,6 @@ class Player {
 			if(!pStr.length)
 				break;
 		}
-		console.log(m);
 		this.totalP = m;
 	}
 }

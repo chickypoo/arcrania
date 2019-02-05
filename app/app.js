@@ -2,6 +2,7 @@ const bot_setting = require("./config/bot.json");
 const gatherer = require("./cmd/method/gather.js");
 const merger = require("./cmd/method/merge.js").merge_inventory;
 const teacher = require("./cmd/method/teaching.js");
+const fight = require('./cmd/method/recover.js');
 
 const Discord = require("discord.js");
 const bot = new Discord.Client();
@@ -31,8 +32,15 @@ bot.on("ready", () => {
 	bot.user.setPresence({ game: { name: `${bot_setting.prefix}join to register!`, type: 0 } });
 
 	//Process all fishing / mining / woodcutting for those that has passed the time.
+	setInterval(() => {
+		gatherer.process_fisher();
+		gatherer.process_miner();
+		fight.recover();
+		fight.wild();
+	}, 1000);
+	/*
 	setInterval(gatherer.process_fisher, 1000);
-	setInterval(gatherer.process_miner, 1000);
+	setInterval(gatherer.process_miner, 1000);*/
 	//Merge inventory of same player
 	setInterval(merger, 10000);
 	//The teacher takes a student for learning every 5s
@@ -60,6 +68,7 @@ bot.on("message", async message => {
 		}
 	let cmd = bot.commands.get(command.slice(bot_setting.prefix.length));
 	if(cmd) {
+		console.log(`@${message.author.id}->${message.content}`);
 		cmd.run(bot, message, args);
 	}
 });
@@ -68,7 +77,7 @@ bot.on("error", e => {
 	let d = new Date();
 	fs.writeFile(`./error_logs/${d.getMonth()+1}-${d.getDate()}-${d.getHours()}:${d.getMinutes()}`, e, err => {
 		if(err)
-			return console.log(err);
+			return console.log(JSON.stringify(err));
 		console.log("Error Log Saved");
 	});
 });
