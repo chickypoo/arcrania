@@ -25,6 +25,9 @@ module.exports.run = async (bot, msg, arg) => {
 		if(skip) return;
 		return db.query(`INSERT INTO player_stat (player_id) VALUES ('${user_id}')`);
 	}).then(() => {
+		if(skip) return;
+		return db.query(`INSERT INTO player_active (player_id) VALUES ('${user_id}')`);
+	}).then(() => {
 		msg.channel.send(reply);
 		return db.end();
 	}).catch(err => {

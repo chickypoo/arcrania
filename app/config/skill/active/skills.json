@@ -1,0 +1,70 @@
+{
+	"basic_level" : {
+		"bexp" : 5,
+		"iexp"  : 1,
+		"mexp": 0.01,
+		"miexp": 10
+	},
+	"basic" : {
+		"id": 
+			[0,1,2],
+		"name": 
+			["Heavy Strike","Lash","Lesser Heal"],
+		"tag":
+			["Basic","Basic,Bleed","Basic,Heal,Utility"],
+		"bdmg": 
+			[2,1,5],
+		"idmg": 
+			[0.85,0.65,2.15],
+		"crit": 
+			[5,5,10],
+		"bcdmg": 
+			[1,1,2],
+		"icdmg": 
+			[0.15,0.10,0.2],
+		"bpen": 
+			[0,0,0],
+		"ipen":
+			[0,0,0],
+		"atk": 
+			[1.00,1.00,0.00],
+		"mag": 
+			[0,0,0.7],
+		"bmp": 
+			[1,1,2],
+		"imp": 
+			[0.15,0.15,0.22],
+		"hit": 
+			[1,1,1],
+		"pos_eff":
+			[0,0,1],
+		"pos_ef1_id": 
+			[null,null,0],
+		"pos_ef1_rt": 
+			[null,null,100],
+		"pos_ef1_if": 
+			[null,null,[0,0,2,[1,0.8]]],
+		"pos_ef2_id": 
+			[null,null,null],
+		"pos_ef2_rt": 
+			[null,null,null],
+		"pos_ef2_if": 
+			[null,null,null],
+		"neg_eff": 
+			[0,1,0],
+		"neg_ef1_id": 
+			[null,0,null],
+		"neg_ef1_rt": 
+			[null,50,null],
+		"neg_ef1_if":
+			[null,[0.4,0,5,[1,0.2]],null],
+		"neg_ef2_id": 
+			[null,null,null],
+		"neg_ef2_rt": 
+			[null,null,null],
+		"neg_ef2_if": 
+			[null,null,null],
+		"augs": 
+			[[0,1,2,3],[0,1,2,4],[0,1,2]]
+	}
+}
