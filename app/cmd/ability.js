@@ -28,6 +28,8 @@ module.exports.run = async (bot, msg, arg) => {
 			msg.reply(sListEmbed(pabil,msg.author));
 		} else if(arg[0] && haveSkill(pabil,arg[0].toUpperCase())) {
 			msg.reply(detailEmbed(pabil,arg[0].toUpperCase()));
+		} else if(arg && arg.length === 3 && arg[0].toLowerCase() === 'aug' && haveSkill(pabil,arg[1].toUpperCase()) && !isNaN(arg[2])) {
+			//SAVE FOR FUTURE
 		}
 		return;
 	}).then(() => {
@@ -50,7 +52,6 @@ const detailEmbed = (p,s) => {
 			break;
 		}
 	//Compile and generate an embed
-	console.log(sk);
 	const embed = new Discord.RichEmbed()
 		.setTitle(`Detailed Ability Page`)
 		.setColor([102,153,255])

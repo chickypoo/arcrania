@@ -181,7 +181,7 @@ const build_stat_embed = (data, author) => {
 		.addField(`Fishing`, `Level ${data.lifeskill.fishing_level}\nEXP: ${data.lifeskill.fishing_exp}/${gather_exp_next(data.lifeskill.fishing_level)}`, true)
 		.addField(`Mining`, `Level ${data.lifeskill.mining_level}\nEXP : ${data.lifeskill.mining_exp}/${gather_exp_next(data.lifeskill.mining_level)}`, true)
 		.addField(`Woodcutting`, `Level ${data.lifeskill.woodcutting_level}\nEXP : ${data.lifeskill.woodcutting_exp}/${gather_exp_next(data.lifeskill.woodcutting_level)}`, true)
-		.addField(`Cooking`, `Level ${data.lifeskill.cooking_level}\nEXP : ${data.lifeskill.cooking_exp}/PLACEHOLDER`, true)
+		.addField(`Cooking`, `Level ${data.lifeskill.cooking_level}\nEXP : ${data.lifeskill.cooking_exp}/${fx.cookLvlNext(data.lifeskill.cooking_level)}`, true)
 		.addField(`Forging`, `Level ${data.lifeskill.forging_level}\nEXP : ${data.lifeskill.forging_exp}/PLACEHOLDER`, true)
 		.addField(`Refining`, `Level ${data.lifeskill.refining_level}\nEXP : ${data.lifeskill.refining_exp}/PLACEHOLDER`, true)
 		.addField(`Alchemy`, `Level ${data.lifeskill.alchemy_level}\nEXP : ${data.lifeskill.alchemy_exp}/PLACEHOLDER`, true)

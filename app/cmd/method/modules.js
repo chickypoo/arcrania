@@ -7,5 +7,11 @@ module.exports = {
 
 	within : (low, high, val) => ((val >= low) && (val <= high)),
 
-	random : (low, high) => Math.floor(Math.random() * (high - low + 1) + low)
+	random : (low, high) => Math.floor(Math.random() * (high - low + 1) + low),
+
+	cookLvlNext : (lvl) => {
+		let chef = require('../../config/recipe/recipe.json').cooking_level;
+		let bexp = chef.bexp;
+		return bexp + chef.iexp * Math.floor(lvl / chef.iper);
+	}
 };

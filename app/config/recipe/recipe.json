@@ -1,0 +1,26 @@
+{
+	"cooking":{
+		"ingredient":
+			["0-19"],
+		"iName": 
+			["Raw Fish"],
+		"opt_type":
+			["Herb/Sauce"],
+		"opt_num":
+			[2],
+		"opt":
+			["100-139"],
+		"prod":
+			[80],
+		"exp":
+			[1]
+	},
+	"cooking_level":{
+		"bexp": 5,
+		"iexp": 1,
+		"iper": 5,
+		"add": 2,
+		"mult": 0.01,
+		"multp":50
+	}
+}
